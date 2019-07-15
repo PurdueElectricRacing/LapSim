@@ -1,5 +1,5 @@
-%% Acceleration lapsim for PER20.
-%
+%% Acceleration Lap Simulation for PER20.
+
 %% GOAL
 % To simulate a single acceleration run with a simplified
 % point mass representation of the car.
@@ -15,7 +15,7 @@ function [time, carSpeed] = Acceleration(carMass)
     carMass;              % Mass of the car + driver in (kG)
     totalDistance = 75;        % Distance of acceleration event (m)
     timeResolution = 0.001;      % Step time between each acceleration update.
-    mechAdvantage = 3.21;
+    mechAdvantage = getMechAdvantage();
     
     %% DYNAMICS
     carPosition = 0;
@@ -34,6 +34,7 @@ function [time, carSpeed] = Acceleration(carMass)
         
         carSpeed = carSpeed + carAcceleration * timeResolution;
         deltaP = carSpeed * timeResolution;
+        
         carPosition = carPosition + deltaP;
         
         time = time + timeResolution;
@@ -56,6 +57,13 @@ function [time, carSpeed] = Acceleration(carMass)
         torque = clamp(request, 0, 700);
     end
 
+    function advantage = getMechAdvantage()
+       diff = 0.8;
+       sprocket = 3.7;
+       friction = 0.9;
+       advantage = sprocket * diff * friction;
+    end
+
     %% PHYSICS FUNCTIONS
     % These functions are derived from equations given in physics
     % textbooks. They will not vary from car to car and will remain
@@ -73,7 +81,8 @@ function [time, carSpeed] = Acceleration(carMass)
 
     %% HELPER FUNCTIONS
     % Utility functions made to make computations easier.
-    
+
+
     % return clamped value clipped between upper and lower
     function y = clamp(x,lower, upper)
         y=min(max(x,lower),upper);
