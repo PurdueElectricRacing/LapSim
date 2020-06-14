@@ -32,5 +32,5 @@ Cs = PC_x(1) * PC_x(2) * PC_x(3);
 Ca = PC_y(1) * PC_y(2) * PC_y(3);
 
 %MNC model
-Fx = Fx_mf.*Fy_mf.*s ./ sqrt( (s.*Fy_mf).^2 + (tan(a).*Fx_mf).^2 ) .* sqrt( (s.*Ca).^2 + ((1-abs(s)).*cos(a).*Fx_mf).^2 ) ./ (s.*Ca);
-Fy = Fx_mf.*Fy_mf.*tan(a) ./ sqrt( (s.*Fy_mf).^2 + (tan(a).*Fx_mf).^2 ) .* sqrt( ((1-abs(s)).*cos(a).*Fy_mf).^2 + (sin(a).*Cs).^2 ) ./ (sin(a).*Cs);
+Fx = Fx_mf.*Fy_mf ./ sqrt( (s.*Fy_mf).^2 + (tan(a).*Fx_mf).^2 ) .* sqrt( (s.*Ca).^2 + ((1-abs(s)).*cos(a).*Fx_mf).^2 ) ./ Ca;
+Fy = Fx_mf.*Fy_mf ./ sqrt( (s.*Fy_mf).^2 + (tan(a).*Fx_mf).^2 ) .* sqrt( ((1-abs(s)).*cos(a).*Fy_mf).^2 + (sin(a).*Cs).^2 ) ./ (cos(a).*Cs);
