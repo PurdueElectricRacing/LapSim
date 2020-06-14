@@ -1,5 +1,9 @@
 %Parse loaded tire data
 
+%all vectors created here are index vectors for the raw tire data
+%example: FY(FZ_100_IA_1) for all Fy for a load of 100 lbs and inclination
+%of 1
+
 IA_0 = find(IA>-.1 & IA<=0.1); %index matrix for 0 degree inclination angle
 IA_1 = find(IA>0.9 & IA<=1.1); %index matrix for 1 degree inclination angle
 IA_2 = find(IA>1.9 & IA<=2.1); %index matrix for 2 degree inclination angle

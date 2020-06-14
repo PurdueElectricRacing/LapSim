@@ -1,4 +1,8 @@
 function [By, Cy, Dy, Ey] = magic_formula(nom,CA)
+%%
+% I believe this function is unused, but I might be wrong
+% - Shanks
+
 
 load 'B1464run22.mat' %cornering tire data
 Parse_Tire_Data
