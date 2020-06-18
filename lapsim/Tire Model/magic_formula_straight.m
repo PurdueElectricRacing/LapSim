@@ -11,22 +11,26 @@ function [out] = magic_formula_straight(FZ_tire,CA,lambda_mu)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load 'B1464run29.mat' %Straight tire data
+dataset = 29;
 Parse_Tire_Data %parse tire data
 
-FZ0=150*4.448; %Nominal load value for single wheel [N]
-[data_FZ_150] = movemean(SL(FZ_150_IA_0),FX(FZ_150_IA_0),0.01); %nominal load data with 0 degree camber
-[data_IA_4] = movemean(SL(FZ_150_IA_4),FX(FZ_150_IA_4),0.01); %nominal load data with 4 degree camber
+%Nominal load for tire model: make sure these two match:
+FZ_nom = FZ_250; %nominal load index vector  (choose 150, 200, 250)
+FZ0=250*4.448; %Nominal load value for single wheel [N]
+
+[data_FZ_nom] = movemean(SL(intersect(FZ_nom, IA_0)),FX(intersect(FZ_nom, IA_0)),0.01); %nominal load data with 0 degree camber
+[data_IA_4] = movemean(SL(intersect(FZ_nom, IA_4)),FX(intersect(FZ_nom, IA_4)),0.01); %nominal load data with 4 degree camber
 [data_FZ_50] = movemean(SL(FZ_50_IA_0),FX(FZ_50_IA_0),0.01); %50 lb load data with 0 degree camber
 % "movemean" is a moving average filtering function
 
 %step 2: pDY1
-[pDY1,idx] = max(data_FZ_150(:,2));
-pDY1 = pDY1 / FZ0; %lateral friction coefficient at nominal load
+[Dx_nom,idx] = max(data_FZ_nom(:,2));
+pDY1 = Dx_nom / FZ0; %lateral friction coefficient at nominal load
 
-xm = data_FZ_150(idx,1); %target slip ratio
+xm = data_FZ_nom(idx,1); %target slip ratio
 
 %step 8: pDY2
-del_mu = max(abs(data_FZ_150(:,2)))/(FZ0)- max(abs(data_FZ_50(:,2)))/(50*4.448); %calc delta from max lateral force friction
+del_mu = max(abs(data_FZ_nom(:,2)))/(FZ0)- max(abs(data_FZ_50(:,2)))/(50*4.448); %calc delta from max lateral force friction
 del_fz = (FZ0-50*4.448); %calc delta normal load
 pDY2 = del_mu/del_fz*FZ0;
 
@@ -39,12 +43,12 @@ Dx = FZ_tire*(pDY1 + pDY2*dFZ)*(1 - pDY3*(CA*pi/180)^2)*lambda_mu;
 
 %step 4: pCY1 and Cx
 kf = 0.7; %correction factor due to data not capturing the real asymptote
-ya150 = abs(data_FZ_150(end))*kf; % asymptote of FX/SA curve, nominal load
-pCY1 = (1 + (1 - (2/pi)*asin(ya150/Dx)));
+ya150 = abs(data_FZ_nom(end))*kf; % asymptote of FX/SA curve, nominal load
+pCY1 = (1 + (1 - (2/pi)*asin(ya150/Dx_nom)));
 Cx = pCY1;
 %with the right kf, Cx ~= 1.5 and pEY1 ~= 0
 
-Bx = slope(data_FZ_150,0,0.01)/(Dx*Cx);
+Bx = slope(data_FZ_nom,0,0.01)/(Dx*Cx);
 pEY1 = (Bx*xm-tan(pi/(2*pCY1)))/(Bx*xm-atan(Bx*xm));
 Ex = pEY1;
 

@@ -4,7 +4,7 @@ function [val] = calc_magic_formula(coeff,S)
 %  ratio.
 % Inputs:
 %  coeff - the coefficient vector [B, C, D, E]
-%  S - slip ratio or angle
+%  S - slip ratio or angle (angle in radians)
 % Outputs:
 %  val: Fy or Fx
 % Note: a vertical shift might be required but is not included.
