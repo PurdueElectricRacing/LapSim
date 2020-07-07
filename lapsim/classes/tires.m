@@ -1,4 +1,4 @@
-classdef tire < handle  % must include "handle" in order to pass and return 
+classdef tires < handle  % must include "handle" in order to pass and return 
                         % the class to functions.  Read about value vs
                         % handle classes: https://www.mathworks.com/help/matlab/matlab_oop/comparing-handle-and-value-classes.html
     properties
@@ -16,7 +16,7 @@ classdef tire < handle  % must include "handle" in order to pass and return
     end
     
     methods
-        function obj = tire()
+        function obj = tires()
             % constructor. this function is called when an instance is
             % created
             
