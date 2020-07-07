@@ -1,2 +1,5 @@
-#MacOS Desktop Files
+# MacOS Desktop Files
 .DS_Store
+
+# MATLAB autosave files
+*.asv

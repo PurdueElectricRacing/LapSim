@@ -2,48 +2,49 @@ clear
 clc
 %%%%function input%%%%
 
-v = sqrt(196.2); %tangential velocity [m/s] - contributes to roll
+v = sqrt(100); %tangential velocity [m/s] - contributes to roll
 a = 0; %tangential acceleration [m/s^2] - contributes to dive/squat
 corner = 1; %boolean corner input [0 or 1]
-R = 10; %corner radius [m]
+R = 20; %corner radius [m]
 
 %%%%%Static Car Characteristics%%%%
 
-ms = 319.6; %sprung mass [kg]
-mu = [16.2, 16.2, 24, 24]; %unsprung mass [kg] - [front inside, front outside, rear inside, rear otside]
+ms = 210; %sprung mass [kg]
+mu = [10, 10, 10, 10]; %unsprung mass [kg] - [front inside, front outside, rear inside, rear otside]
 
 mur = mu(3)+mu(4); %rear unsprung mass [kg]
 muf = mu(1)+mu(2); %front unprung mass [kg]
 
 hms = 0.3; %ms CG height [m]
-L = 2.29; %wheelbase [m]
+L = 1.575; %wheelbase [m]                                              %Shanks: Added correct value
 
-rf = 0.27; %front wheel radius [m]
+rf = 0.27; %front wheel radius [m]                                     
 rr = 0.28; %rear wheel radius [m]
-Tf = 1.55; %front track [m]
-Tr = 1.5; %rear track [m]
+Tf = 0.7; %front track [m]
+Tr = 0.7; %rear track [m]
 
-lms = 1.343; %ms CG longitudinal location from front axle [m]
+wdist = 0.493; %fraction of ms on front wheels                          %Shanks: added this for correct lms calculation
+lms = (1 - wdist) * L; %ms CG longitudinal location from front axle [m]
 
-hrcf = 0.066; %front roll center to ms height [m]
-hrcr = 0.077; %rear roll center to ms height [m]
+hrcf = 0.66; %front roll center to ms height [m]                        %Shanks: Calculate these
+hrcr = 0.77; %rear roll center to ms height [m]
 hpc = 0.5; %pitch center to ms height [m]
 
-Rm = [1.3, 1.3]; %motion ratio [-] [front, rear]
-Ks = [37200, 37200]; %spring rate [N/m] [front, rear]
-Kt = [250000, 250000]; %tire vertical stifness [N/m]
+Rm = [1.3, 1.3, 1.3, 1.3]; %motion ratio [-] [front, rear]
+Ks = [37200, 37200, 37200, 37200]; %spring rate [N/m] [front, rear]
+Kt = [250000, 250000, 250000, 250000]; %tire vertical stifness [N/m]
 
 anti_dive = 0.3; %percent anti dive geometry
 anti_squat = 0.3; %percent anti squat geometry
 
 %calculated car characteristics
-Kw = Ks./(Rm.^2); % Wheel center rate [N/m]
-Kr_f = 1/(1/Kw(1) + 1/Kt(1)); %ride rate front [N/m]
-Kr_r = 1/(1/Kw(2) + 1/Kt(2)); %ride rate rear [N/m]
+Kw = Ks./Rm; % Wheel center rate [N/m]
+Kr_f = 1/(1/((Kw(1)+Kw(2))/2) + 1/((Kt(1)+Kt(2))/2)); %ride rate front [N/m]
+Kr_r = 1/(1/((Kw(3)+Kw(4))/2) + 1/((Kt(3)+Kt(4))/2)); %ride rate rear [N/m]
 K_phi_f = Tf^2*Kr_f/114.6; %front roll rate [Nm/deg]
 K_phi_r = Tr^2*Kr_r/114.6; %rear roll rate [Nm/deg]
 
-K_theta = L^2*(Kr_f+Kr_r)/114.6; %pitch rate [Nm/deg]
+K_theta = L^2*Kr_f/114.6; %pitch rate [Nm/deg]
 
 hra = hms-hrcf+lms*(hrcr-hrcf)/L; %sprung mass center to roll axis height
 %%%%Function Calculations%%%%
