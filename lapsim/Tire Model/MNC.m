@@ -1,13 +1,12 @@
-function [Fx, Fy] = MNC(s,a,Fz_tire,CA,lambda_mu)
-%%
+function [Fx, Fy] = MNC(s,a,PC_x,PC_y)
+%%%%%%%%%%%%%%%%%%%
 % Summary: Calculates the Modified Nicolas-Comstock model for combined
 % steering and traction (aka the tire force ellipse)
 % Inputs:
 %  s - slip ratio
 %  a - slip angle (degrees)
-%  Fz_tire - the normal force on the tire (N)
-%  CA - camber angle (degrees)
-%  lambda_mu - friction scaling factor (default = 1)
+%  PC_x - vector of longitudingal Pacejka coefficients
+%  PC_y - vector of lateral Pajecka coefficients
 % Outputs:
 %  [Fx, Fy] - tire forces
 % Note:
@@ -15,13 +14,9 @@ function [Fx, Fy] = MNC(s,a,Fz_tire,CA,lambda_mu)
 % y refers to lateral or left direction
 % see the paper "The Tire-Force Ellipse (Friction Ellipse) and Tire
 % Characteristics" (Brach and Brach, 2011)
-%%
+%%%%%%%%%%%%%%%5
 
 a = a * pi/180; %convert degrees to radians
-
-%get the Pacejka coefficients
-PC_x = magic_formula_straight(Fz_tire, CA, lambda_mu);
-PC_y = magic_formula_corner(Fz_tire, CA, lambda_mu);
 
 %find Fx and Fy from the Pacejka model
 Fx_mf = calc_magic_formula(PC_x, s);

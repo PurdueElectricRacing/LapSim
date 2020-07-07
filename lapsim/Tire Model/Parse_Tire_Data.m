@@ -5,6 +5,15 @@
 %of 1
 
 
+%uncomment one of these if not calling from a function:
+
+load 'B1464run22.mat' %cornering tire data
+dataset = 22;
+
+% load 'B1464run29.mat' %straight tire data
+% dataset = 29;
+
+
 %get the correct start time for the given dataset
 %define dataset first
 start_time_list = [22, 400; %dataset 22 starts at ET = 400
@@ -53,14 +62,25 @@ FZ_150_IA_4 = intersect(FZ_150, IA_4);
 FZ_200_IA_4 = intersect(FZ_200, IA_4);
 FZ_250_IA_4 = intersect(FZ_250, IA_4);
 
+%separate out tire pressures - kpa
+P_68 = find(P < 74); %10 psi
+P_82 = find(P > 75 & P < 88); %12 psi
+P_96 = find(P > 89); %14 psi
 
 
-% plot(-pi/180*SA(FZ_50_IA_0), FY(FZ_50_IA_0),"b.")
+% plot(-pi/180*SA(FZ_50_IA_0), NFY(FZ_50_IA_0),"b.")
 % hold on
-% plot(-pi/180*SA(FZ_100_IA_0), FY(FZ_100_IA_0),"k.")
-% plot(-pi/180*SA(FZ_150_IA_0), FY(FZ_150_IA_0),"r.")
-% plot(-pi/180*SA(FZ_200_IA_0), FY(FZ_200_IA_0),"g.")
-% plot(-pi/180*SA(FZ_250_IA_0), FY(FZ_250_IA_0),"m.")
+% plot(-pi/180*SA(FZ_100_IA_0), NFY(FZ_100_IA_0),"k.")
+% plot(-pi/180*SA(FZ_150_IA_0), NFY(FZ_150_IA_0),"r.")
+% plot(-pi/180*SA(FZ_200_IA_0), NFY(FZ_200_IA_0),"g.")
+% plot(-pi/180*SA(FZ_250_IA_0), NFY(FZ_250_IA_0),"m.")
+
+% plot(SL(FZ_50_IA_0), FX(FZ_50_IA_0),"b.")
+% hold on
+% plot(SL(FZ_100_IA_0), FX(FZ_100_IA_0),"k.")
+% plot(SL(FZ_150_IA_0), FX(FZ_150_IA_0),"r.")
+% plot(SL(FZ_200_IA_0), FX(FZ_200_IA_0),"g.")
+% plot(SL(FZ_250_IA_0), FX(FZ_250_IA_0),"m.")
 
 % % figure(1)
 % % plot(ET(FZ_50), SA(FZ_50),'.')

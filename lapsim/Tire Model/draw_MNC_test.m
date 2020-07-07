@@ -5,14 +5,18 @@ Fz_tire = 9.8*75;
 CA = 0;
 lambda_mu = 1;
 
+%get pacejka coefficients
+PC_x = magic_formula_straight(Fz_tire, CA, lambda_mu,150);
+PC_y = magic_formula_corner(Fz_tire, CA, lambda_mu,150);
+
 figure(10); %set up friction ellipse figure
-ylim([-1500,1500]); %change these ranges if neccesary
+ylim([-2000,2000]); %change these ranges if neccesary
 xlim([0,2000]);
 hold on;
 
 a = -30:0.01:30; %range of slip angles
 for s = [0.05,0.1,0.15,0.2,0.3] % plot these slip ratios for the range of slip angles
-    [xx,yy] = MNC(s,a,Fz_tire,CA,lambda_mu);
+    [xx,yy] = MNC(s,a,PC_x,PC_y);
     figure(10)
     plot(abs(yy),xx,"k.")
     %fprintf("SR = %f\n",s);   %uncomment for one at a time plotting
@@ -21,17 +25,13 @@ end
 
 s = 0:0.001:0.3; %range of slip ratios
 for a = [5, 10, 20, 30]  %plot these slip angles for the range of slip ratios
-    [xx,yy] = MNC(s,a,Fz_tire,CA,lambda_mu);
+    [xx,yy] = MNC(s,a,PC_x,PC_y);
     figure(10)
     plot(abs(yy),xx,"b.")
     plot(abs(yy),-xx,"b.")
     %fprintf("SA = %f\n",a);
     %input("hit enter")
 end
-
-%get pacejka coefficients again
-PC_x = magic_formula_straight(Fz_tire, CA, lambda_mu);
-PC_y = magic_formula_corner(Fz_tire, CA, lambda_mu);
 
 %plot the asymptotic value ellipse (kinetic friction)
 Fx_inf = PC_x(3)*sin(PC_x(2)*pi/2);
@@ -59,7 +59,7 @@ results = []; %combine results into one array: s, a, fx, fy
 a = -30.01:1:30.01; % note MNC is undefined when s or a = 0
 s = -0.3001:0.01:0.3001;
 for sr = s % plot these slip ratios for the range of slip angles
-    [xx,yy] = MNC(sr,a,Fz_tire,CA,lambda_mu);
+    [xx,yy] = MNC(sr,a,PC_x,PC_y);
     results = [results; sr*ones(length(a),1), a', xx', yy'];
 end
 
