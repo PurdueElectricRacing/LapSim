@@ -35,3 +35,13 @@ The current suspension model is extremely basic. There is a half-baked attempt a
 ### Traction
 
 Wheel slip dynamics may be somewhat difficult to properly simulate. The current motor dynamics in motor.m assumes that the car is always operating at the power limit and will further limit output torque to the traction limit if necessary. The traction limit can be updated using the tire model simulation directly in longitudinal_traction.m and the track table preprocessing. I have created two functions called magic_formula_corner.m and magic_formula_straight.m that determines Pacejka tire coefficients for the lateral and longitudinal traction cases. The magic_formula.m function will evaluate either tractive force of an individual wheel with input of the respective coefficients, wheel normal load, and wheel camber angle. This project will be associated with updating the motor model as the slipping case is highly interrelated.
+
+## Getting Set Up
+
+- Prepare to clone the repository using the clone button on the main page of this repository. Rather than downloading all files, copy the link given in the clone box. If you are not a member of PER on GitHub, you won't be able to clone the project. If this is the case, please request access from a member on GitHub.
+- In MatLAB, under home, select new. Select `Project`, and then `From Git`.
+- Select change under repository path and enter the copied link from the clone page.
+- Make sure the file path listed under `Sandbox` is where you want everything to go. When done, select `Retrieve` from the bottom right.
+- When you get an error about not being able to find a project, select `Cancel`.
+
+For more information about how to use GitHub with MatLAB after setup, read the document [here](https://docs.google.com/document/d/1gen7prkkG-CvCPOUjR6NYGRNGCtM_V16xhgDluyXJXo/edit).
