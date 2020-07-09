@@ -7,8 +7,8 @@
 
 %uncomment one of these if not calling from a function:
 
-load 'B1464run22.mat' %cornering tire data
-dataset = 22;
+% load 'B1464run22.mat' %cornering tire data
+% dataset = 22;
 
 % load 'B1464run29.mat' %straight tire data
 % dataset = 29;
@@ -63,9 +63,9 @@ FZ_200_IA_4 = intersect(FZ_200, IA_4);
 FZ_250_IA_4 = intersect(FZ_250, IA_4);
 
 %separate out tire pressures - kpa
-P_68 = find(P < 74); %10 psi
-P_82 = find(P > 75 & P < 88); %12 psi
-P_96 = find(P > 89); %14 psi
+P_10 = find(P < 74); %10 psi
+P_12 = find(P > 75 & P < 88); %12 psi
+P_14 = find(P > 89); %14 psi
 
 
 % plot(-pi/180*SA(FZ_50_IA_0), NFY(FZ_50_IA_0),"b.")
@@ -74,6 +74,13 @@ P_96 = find(P > 89); %14 psi
 % plot(-pi/180*SA(FZ_150_IA_0), NFY(FZ_150_IA_0),"r.")
 % plot(-pi/180*SA(FZ_200_IA_0), NFY(FZ_200_IA_0),"g.")
 % plot(-pi/180*SA(FZ_250_IA_0), NFY(FZ_250_IA_0),"m.")
+ 
+% plot(pi/180*SA(intersect(FZ_50_IA_4,P_12)), MZ(intersect(FZ_50_IA_4,P_12)),"b.")
+% hold on
+% plot(pi/180*SA(intersect(FZ_100_IA_4,P_12)), MZ(intersect(FZ_100_IA_4,P_12)),"k.")
+% plot(pi/180*SA(intersect(FZ_150_IA_4,P_12)), MZ(intersect(FZ_150_IA_4,P_12)),"r.")
+% plot(pi/180*SA(intersect(FZ_200_IA_4,P_12)), MZ(intersect(FZ_200_IA_4,P_12)),"g.")
+% plot(pi/180*SA(intersect(FZ_250_IA_4,P_12)), MZ(intersect(FZ_250_IA_4,P_12)),"m.")
 
 % plot(SL(FZ_50_IA_0), FX(FZ_50_IA_0),"b.")
 % hold on
