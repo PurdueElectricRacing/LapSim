@@ -49,8 +49,15 @@ end
 [data_FZ_var] = movemean(SL(intersect(FZ_var_i, IA_0)),FX(intersect(FZ_var_i, IA_0)),0.01); %50 lb load data with 0 degree camber
 % "movemean" is a moving average filtering function
 
+%vertical offset correction 
+FX_offset = mean(data_FZ_nom(:,2));
+data_FZ_nom(:,2) = data_FZ_nom(:,2) - FX_offset;
+FX_offset = mean(data_FZ_var(:,2));
+data_FZ_var(:,2) = data_FZ_var(:,2) - FX_offset;
+
 %step 2: pDY1
-[Dx_nom,idx] = max(abs(data_FZ_nom(:,2)));
+Dx_nom = (max(data_FZ_nom(:,2)) - min(data_FZ_nom(:,2)))./2;
+[~,idx] = max(data_FZ_nom(:,2));
 pDY1 = Dx_nom / FZ0; %lateral friction coefficient at nominal load
 
 xm = abs(data_FZ_nom(idx,1)); %target slip ratio

@@ -56,13 +56,25 @@ end
 [data_IA_4] =   movemean(SA( intersect(FZ_nom_i, IA_4) ), FY( intersect(FZ_nom_i, IA_4) ),0.3); %nominal load data with 4 degree camber
 [data_FZ_var] = movemean(SA( intersect(FZ_var_i, IA_0) ), FY( intersect(FZ_var_i, IA_0) ),0.3); %50 lb load data with 0 degree camber
 
-[data_FZ_nom_MZ] = movemean(SA( intersect(intersect(FZ_nom_i, IA_0),P_12) ), MZ( intersect(intersect(FZ_nom_i, IA_0),P_12) ),0.3); 
-[data_IA_4_MZ] =   movemean(SA( intersect(intersect(FZ_nom_i, IA_4),P_12) ), MZ( intersect(intersect(FZ_nom_i, IA_4),P_12) ),0.3); 
-[data_FZ_var_MZ] = movemean(SA( intersect(intersect(FZ_var_i, IA_0),P_12) ), MZ( intersect(intersect(FZ_var_i, IA_0),P_12) ),0.3); 
+[data_FZ_nom_MZ] = movemean(SA( intersect(intersect(FZ_nom_i, IA_0),P_12) ), MZ( intersect(intersect(FZ_nom_i, IA_0),P_12) ),0.5); 
+[data_IA_4_MZ] =   movemean(SA( intersect(intersect(FZ_nom_i, IA_4),P_12) ), MZ( intersect(intersect(FZ_nom_i, IA_4),P_12) ),0.5); 
+[data_FZ_var_MZ] = movemean(SA( intersect(intersect(FZ_var_i, IA_0),P_12) ), MZ( intersect(intersect(FZ_var_i, IA_0),P_12) ),0.5); 
 % "movemean" is a moving average filtering function
 
+%vertical offset correction 
+FY_offset = mean(data_FZ_nom(:,2));
+data_FZ_nom(:,2) = data_FZ_nom(:,2) - FY_offset;
+FY_offset = mean(data_FZ_var(:,2));
+data_FZ_var(:,2) = data_FZ_var(:,2) - FY_offset;
+
+MZ_offset = mean(data_FZ_nom_MZ(:,2));
+data_FZ_nom_MZ(:,2) = data_FZ_nom_MZ(:,2) - MZ_offset;
+MZ_offset = mean(data_FZ_var_MZ(:,2));
+data_FZ_var_MZ(:,2) = data_FZ_var_MZ(:,2) - MZ_offset;
+
 %step 2: pDY1
-[Dy_nom,idx] = max(abs(data_FZ_nom(:,2)));
+Dy_nom = (max(data_FZ_nom(:,2)) - min(data_FZ_nom(:,2)))./2;
+[~,idx] = max(data_FZ_nom(:,2));
 pDY1 = Dy_nom / FZ0; %lateral friction coefficient at nominal load
 
 xm = abs(data_FZ_nom(idx,1))*pi/180; %target slip angle, radians
@@ -96,26 +108,27 @@ PC_y = [By, Cy, Dy, Ey];
 % aligning torque coefficients
 
 %step 2: pDY1
-[Dy_nom,idx] = max(abs(data_FZ_nom_MZ(:,2)));
+Dy_nom = (max(data_FZ_nom_MZ(2:end-1,2)) - min(data_FZ_nom_MZ(2:end-1,2)))./2;
+[~,idx] = max(data_FZ_nom_MZ(2:end-1,2));
 pDY1 = Dy_nom / FZ0; %aligning torque "friction" coefficient at nominal load
 
-xm = abs(data_FZ_nom_MZ(idx,1))*pi/180; %indicator slip angle, where aligning torque is maximum
+xm = abs(data_FZ_nom_MZ(idx+1,1))*pi/180; %indicator slip angle, where aligning torque is maximum
 
 %step 8: pDY2
-del_mu = max(abs(data_FZ_nom_MZ(:,2)))/(FZ0)- max(abs(data_FZ_var_MZ(:,2)))/(FZ_var); %calc delta from max lateral force friction
+del_mu = max(abs(data_FZ_nom_MZ(2:end-1,2)))/(FZ0)- max(abs(data_FZ_var_MZ(2:end-1,2)))/(FZ_var); %calc delta from max lateral force friction
 del_fz = (FZ0-FZ_var); %calc delta normal load
 pDY2 = del_mu/del_fz*FZ0;
 
 %step 9: pDY3
-pDY3 = (1 - max(abs(data_IA_4_MZ(:,2)))/(FZ0*pDY1) ) / (4*pi/180)^2;
+pDY3 = (1 - max(abs(data_IA_4_MZ(2:end-1,2)))/(FZ0*pDY1) ) / (4*pi/180)^2;
 
 %calculate Dy
 dFZ = (FZ_tire-FZ0)/FZ0;
 Dy = FZ_tire*(pDY1 + pDY2*dFZ)*(1 - pDY3*(CA*pi/180)^2)*lambda_mu;
 
 %step 4: pCY1 and Cy
-kf = 1; %correction factor due to data not capturing the real asymptote
-ya150 = data_FZ_nom_MZ(end,2)*kf; % asymptote of MZ/SA curve, nominal load
+kf = -1; %correction factor due to data not capturing the real asymptote
+ya150 = data_FZ_nom_MZ(end-1,2)*kf; % asymptote of MZ/SA curve, nominal load
 pCY1 = (1 + (1 - (2/pi)*asin(ya150/Dy_nom)));
 Cy = pCY1;
 
@@ -125,11 +138,11 @@ Ey = pEY1;  %zero camber only
 
 PC_z = [By, Cy, Dy, Ey];
 
-
+% 
 % figure(2)
 % hold on
 % plot(data_FZ_nom(:,1)*-pi/180,data_FZ_nom(:,2),".")
-
+% 
 % figure(4)
 % hold on
 % plot(data_FZ_nom_MZ(:,1)*pi/180,data_FZ_nom_MZ(:,2),".")
