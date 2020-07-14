@@ -5,7 +5,7 @@ classdef lv < handle
         pump_rate;          % Current pump rate as a ratio of max rate (0-1)
         batt_temp;          % Current average pack temp in deg C
         batt_fan_rate;      % Current fan rate as a ratio of max rate (0-1)
-        wireless_telemetry; % Possibly break into own class
+        %wireless_telemetry; % Possibly break into own class
         mc_power;           % Current power draw from motor controller in W
         load_budget;        % Budget for LV load in W
         
@@ -13,7 +13,7 @@ classdef lv < handle
         dcdc_eff;           % Efficiency of DC/DC as a ratio (0-1)
         pump_eff;           % Efficiency of pump as a ratio (0-1)
         batt_fan_eff;       % Efficiency of battery fans as a ratio (0-1)
-        wt_load;            % Current wireless telemetry load in percent
+        %wt_load;            % Current wireless telemetry load in percent
         fan_max_draw;       % Maximum current draw of battery fans in A
         pump_max_draw;      % Maximum current draw of pump in A
         lv_voltage;         % LV operating voltage in V
