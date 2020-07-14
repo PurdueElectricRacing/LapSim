@@ -3,7 +3,7 @@ classdef tires < handle  % must include "handle" in order to pass and return
                         % handle classes: https://www.mathworks.com/help/matlab/matlab_oop/comparing-handle-and-value-classes.html
     properties
         Fz;         %current load (N)
-        Fz_nom;     %nominal load (N)
+        %Fz_nom;     %nominal load (N)
         
         Fx_mf;      %current tractive forces
         Fy_mf;      % calculated from the magic formula
@@ -12,14 +12,15 @@ classdef tires < handle  % must include "handle" in order to pass and return
         Fx_mnc;     %combined fx/fy calculated from MNC model
         Fy_mnc; 
         
-        sr;         %slip ratio
-        sa;         %slip angle
+        sr;         %slip ratio: + accelerating
+        sa;         %slip angle: + vehicle steering to the right/tire 
+                    % sliding to the left
         
         steer_angle = 0; %steering angle, relative to chassis (radians)
                          % Right turn is positive.
         
-        v_vel;       %[vehicle x (forward) velocity, y (right) velocity]
-        t_vel;       %[tire longitudinal (forward) velocity, lateral (right) velocity]
+        u_vehicle;   %[vehicle x (forward) velocity; y (right) velocity]
+        v_tire;      %[tire longitudinal (forward) velocity; lateral (right) velocity]
         angular_vel; %rotational velocity of the tire (rad/s - forward positive)
         
         PC_x;       % current Pacejka coefficients given load Fz
@@ -44,9 +45,9 @@ classdef tires < handle  % must include "handle" in order to pass and return
             %obj.Fz_nom = Fz_nom;
         end
         
-        function [PC_x_interp, PC_y_interp, PC_z_interp] = interp_PCs(self, Fz)  
+        function [PC_x_interp, PC_y_interp, PC_z_interp] = interp_PCs(self)  
             %interpolates PCs between two nominal loads. Fz must be [N]
-            Fz_lbs = Fz / 4.448; %get the load in lbs
+            Fz_lbs = self.Fz / 4.448; %get the load in lbs
             switch true
                 case Fz_lbs <= 100
                     PC_x_low  = self.PC_x_mat(1,:);
@@ -113,12 +114,28 @@ classdef tires < handle  % must include "handle" in order to pass and return
             self.PC_z = PC_z_interp;
         end
         
+        function v_tire = get_tire_velocity_vector(self)
+            b = self.steer_angle;
+            rotation_matrix = [cos(b) sin(b); -sin(b) cos(b)]; %tire = R * vehicle
+            v_tire = rotation_matrix * self.u_vehicle;
+            self.v_tire = v_tire;
+        end
+        
         function sr = get_sr(self)
-            
+            %SAE J670 slip ratio definition: S = (omega*Re / V*cosa) - 1
+            omega = self.angular_vel; %angular velocity of the tire
+            Re = self.tire_radius;    %effective tire radius
+            Vcosa = self.v_tire(1);   %Vcosa = vx
+            sr = omega*Re / Vcosa - 1;
+            self.sr = sr;
         end
         
         function sa = get_sa(self)
+            vx = self.v_tire(1); %tire velocity, forward positive
+            vy = self.v_tire(2); % RIGHT positive
             
+            sa = atan(-vy/vx); %left tire motion, positive sa
+            self.sa = sa;
         end
         
         function [fx, fy, mz] = calc_magic_formula(self)
@@ -140,9 +157,38 @@ classdef tires < handle  % must include "handle" in order to pass and return
             Cs = self.PC_x(1) * self.PC_x(2) * self.PC_x(3);
             Ca = self.PC_y(1) * self.PC_y(2) * self.PC_y(3);
             
+            fy_a = abs(self.Fy_mf);  %equations only work for positive forces
+            fx_s = abs(self.Fx_mf);
+            
+            SR = abs(self.sr);
+            SA = abs(self.sa);
+            
             %calculate model
-            fx = self.Fx_mf.*self.Fy_mf ./ sqrt( (self.sr.*self.Fy_mf).^2 + (tan(self.sa).*self.Fx_mf).^2 ) .* sqrt( (self.sr.*Ca).^2 + ((1-abs(self.sr)).*cos(self.sa).*self.Fx_mf).^2 ) ./ Ca;
-            fy = self.Fx_mf.*self.Fy_mf ./ sqrt( (self.sr.*self.Fy_mf).^2 + (tan(self.sa).*self.Fx_mf).^2 ) .* sqrt( ((1-abs(self.sr)).*cos(self.sa).*self.Fy_mf).^2 + (sin(self.sa).*Cs).^2 ) ./ (cos(self.sa).*Cs);
+            fx_as = fx_s.*fy_a ./ sqrt( (SR.*fy_a).^2 + (tan(SA).*fx_s).^2 ) .* sqrt( (SR.*Ca).^2 + ((1-SR).*cos(SA).*fx_s).^2 ) ./ Ca;
+            fy_as = fx_s.*fy_a ./ sqrt( (SR.*fy_a).^2 + (tan(SA).*fx_s).^2 ) .* sqrt( ((1-SR).*cos(SA).*fy_a).^2 + (sin(SA).*Cs).^2 ) ./ (cos(SA).*Cs);
+            self.Fx_mnc = fx_as * sign(self.Fx_mf);  %make sure the signs are correct
+            self.Fy_mnc = fy_as * sign(self.Fy_mf);
+        end
+        
+        function update_tire(self, Fz, steering_angle, veh_vel_vector, angular_vel)
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            % runs all tire functions in the correct order.
+            % Inputs:
+            %  Fz: tire normal force [N]
+            %  steering_angle: tire steering angle [radians, + is right]
+            %  veh_vel_vector: vehicle velocity: [Vx; Vy]
+            %  angular_vel: angular velocity of the tire [rad/s]
+            %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+            self.Fz = Fz;
+            self.interp_PCs;
+            self.steer_angle = steering_angle;
+            self.u_vehicle = veh_vel_vector;
+            self.get_tire_velocity_vector;
+            self.angular_vel = angular_vel;
+            self.get_sr;
+            self.get_sa;
+            self.calc_magic_formula;
+            self.calc_MNC;
         end
         
         function plot_magic_formula(self, type)

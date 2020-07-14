@@ -1,5 +1,5 @@
 
-%create MNC plot
+%create MNC plot (TEST SCRIPT)
 
 Fz_tire = 9.8*75;
 CA = 0;
