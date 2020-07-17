@@ -30,6 +30,15 @@ classdef vd < handle
         Accel = [0;0;0];        %[x;y;z] acceleration (local)
         Ang_accel = [0;0;0];    %[roll;pitch;yaw] acceleration (local)
         
+        % Previous timestep values:
+        Time_p = [0 0 0];
+        Pos_p = [0 0 0; 0 0 0; 0 0 0]; %current, last, last last
+        Ang_pos_p = [0 0 0];
+        Vel_p = [0 0 0; 0 0 0; 0 0 0];
+        Ang_vel_p = [0 0 0; 0 0 0; 0 0 0];
+        Accel_p = [0 0 0; 0 0 0; 0 0 0];
+        Ang_accel_p = [0 0 0; 0 0 0; 0 0 0];
+        
         last_update_time = 0;   %timestamp of the last time parameters were updated (s)
     end
     
@@ -56,8 +65,10 @@ classdef vd < handle
             rotation_matrix = [cos(yaw) -sin(yaw); sin(yaw) cos(yaw)];
             global_vec = rotation_matrix * local_vec;
         end
+        
+        
             
-        function update_position_orientation(self, sim_time)
+        function update_position(self, sim_time, accel_vec, ang_accel_vec)
             %integrates accel and velocity to get position
             % sim_time is the current simulated time, used for calculating
             % the integrals
@@ -67,6 +78,18 @@ classdef vd < handle
             
             %lots of math here:
             %use rungekutta.m function for integration
+            
+            a2 = self.Accel;
+            a1 = self.Accel_p(:,1);
+            a0 = self.Accel_p(:,2);
+            v1 = self.Vel;
+            self.Vel = rungekutta(v1, a0, a1, a2, time_step);
+            
+            aa2 = self.Ang_accel;
+            aa1 = self.Ang_accel_p(:,1);
+            aa0 = self.Ang_accel_p(:,2);
+            av1 = self.Ang_vel;
+            self.Ang_vel = rungekutta(av1, aa0, aa1, aa2, time_step);
         end            
     end
 end
