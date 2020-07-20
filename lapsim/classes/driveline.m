@@ -14,7 +14,6 @@ classdef driveline
         moment_inertia
         dif_locking_coefficient
         chain_tension           % If applicable
-        driveline_eff
         
         % Outputs
         wheel_torque
@@ -33,10 +32,6 @@ classdef driveline
                 obj.dif_locking_coefficient = dlc;
                 obj.chain_tension = ct;
             end
-        end
-
-        function driveline_run(self, motor, fdr)
-            self.wheel_torque = motor.motor_torque * fdr * self.driveline_eff;
         end
     end
 end

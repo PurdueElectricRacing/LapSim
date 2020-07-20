@@ -6,12 +6,6 @@ classdef aero
         cd_profile
         cop_profile
                 
-        % Internal variables
-        air_density
-        Af
-        Cr
-        Al
-
         % Outputs
         drag_force
         lift_front_force
