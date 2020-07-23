@@ -14,7 +14,8 @@ classdef driveline
         gear_ratio
         moment_inertia
         dif_locking_coefficient
-        chain_tension           % If applicable
+        chain_tension % If applicable
+        viscousCoef
         
         % Outputs
         wheel_torque_left
@@ -22,10 +23,10 @@ classdef driveline
     end
     
     methods
-        function obj = driveline(t, c, mech_e, gr, moi, dlc, ct)
+        function obj = driveline(t, c, mech_e, gr, moi, dlc, ct, visc)
             % Driveline class constructor
             % Input type, config, and internal values
-            if nargin == 7
+            if nargin == 8
                 obj.type = t;
                 obj.configuration = c;
                 obj.mechanical_efficiency = mech_e; % percentage
@@ -33,26 +34,30 @@ classdef driveline
                 obj.moment_inertia = moi;
                 obj.dif_locking_coefficient = dlc;
                 obj.chain_tension = ct; %percentage ?
+                obj.viscousCoef = visc;
             end
         end
         
         function [wheel_torque_left,wheel_torque_right] = RunDriveline(motor_output_torque,torque_load)
+            
+            motor_output_torque = obj.chain_tension * (motor_output_torque * obj.gear_ratio);
+            
             if motor_output_torque > torque_load % acceleration
-                torque_load = torque_load * obj.gear_ratio;
-                wheel_torque_left = obj.mechanical_efficinecy * obj.chain_tension * 0.5 * torque_load;
-                wheel_torque_right = obj.mechanical_efficinecy * obj.chain_tension * 0.5 * torque_load;
+                
             elseif motor_output_torque < torque_load % deceleration
-                torque_load = motor_output_torque * obj.gear_ratio;
-                wheel_torque_left = obj.mechanical_efficinecy * obj.chain_tension * 0.5 * torque_load;
-                wheel_torque_right = obj.mechanical_efficinecy * obj.chain_tension * 0.5 * torque_load;
+                
             elseif motor_output_torque == torque_load % steady state
-                motor_output_torque = motor_output_torque * obj.gear_ratio;
-                wheel_torque_left = obj.mechanical_efficinecy * obj.chain_tension * 0.5 * motor_output_torque;
-                wheel_torque_right = obj.mechanical_efficinecy * obj.chain_tension * 0.5 * motor_output_torque;
+               
             end
+            
+            difTorque = differential(RAngVel,LAngVel);
+            wheel_torque_left = obj.mechanical_efficinecy * (0.5 * motor_output_torque + difTorque);
+            wheel_torque_right = obj.mechanical_efficinecy * (0.5 * motor_output_torque - difTorque);
+            
         end
         
-        function [LShaft,RShaft] = differential(load_torque)
+        function difTorque = differential(RAngVel,LAngVel)
+            difTorque = (RAngVel - LAngVel) * 0.5 * obj.viscousCoef;
         end
     end
 end
