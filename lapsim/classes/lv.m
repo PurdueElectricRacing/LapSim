@@ -5,7 +5,6 @@ classdef lv < handle
         pump_rate;          % Current pump rate as a ratio of max rate (0-1)
         batt_temp;          % Current average pack temp in deg C
         batt_fan_rate;      % Current fan rate as a ratio of max rate (0-1)
-        %wireless_telemetry; % Possibly break into own class
         mc_power;           % Current power draw from motor controller in W
         load_budget;        % Budget for LV load in W
         
@@ -13,12 +12,14 @@ classdef lv < handle
         dcdc_eff;           % Efficiency of DC/DC as a ratio (0-1)
         pump_eff;           % Efficiency of pump as a ratio (0-1)
         batt_fan_eff;       % Efficiency of battery fans as a ratio (0-1)
-        %wt_load;            % Current wireless telemetry load in percent
         fan_max_draw;       % Maximum current draw of battery fans in A
+        fan_max_rate;       % Max RPM of fan
         pump_max_draw;      % Maximum current draw of pump in A
+        pump_max_rate;      % Maximum pump flow rate in liters per minute
         lv_voltage;         % LV operating voltage in V
         coolant_temp_max;   % Maximum allowed coolant temperature in deg C
         battery_temp_max;   % Maximum allowed battery temperature in deg C
+        fan_count;          % Number of fans in the battery
         
         % Outputs
         lv_power_cons;      % Power consumption in J
@@ -42,13 +43,15 @@ classdef lv < handle
         function powerLoss(self, dt)
             % Calculates losses due to efficiency constraints
             % Inputs: dt - Time step
-            temp = self.fan_max_draw - (self.fan_max_draw * (1 - self.batt_fan_rate));
-            temp = temp * self.lv_voltage;
+            temp = (-3 * 10 ^ -6) * ((self.fan_max_rate * self.batt_fan_rate) ^ 2) * self.fan_count;
+            temp = temp + 0.0237 * (self.fan_max_rate * self.batt_fan_rate);
+            temp = temp + 2 *10 ^ -14;
             temp = temp / self.batt_fan_eff;
             self.lv_power_cons = temp;
-            temp = self.pump_max_draw - (self.pump_max_draw * (1 - self.pump_rate));
-            temp = temp * self.lv_voltage;
-            temp = temp / self.pump_eff;
+            temp = -0.5112 * ((self.pump_max_rate * self.pump_rate) ^ 2);
+            temp = temp + 13.292 * (self.pump_max_rate * self.pump_rate);
+            temp = temp - (10 ^ 13);
+            temp = temp / self. pump_eff;
             self.lv_power_cons = self.lv_power_cons + temp;
             self.lv_power_cons = self.lv_power_cons / self.dcdc_eff;
             self.lv_power_cons = self.lv_power_cons * dt;
