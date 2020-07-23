@@ -5,9 +5,18 @@ classdef vd < handle
 %         acceleration
 %         aero
 %         
-%         % Internal values
-%         suspension_params
-%         vehicle_geom
+        % Internal values
+        susp_params 
+            %
+        veh_params
+            %important vehicle geometry parameters:
+            %   tire_contact_xyz: location of tire contact patches (m)
+            %   Cg_xyz: location of Cg relative to vehicle coords (m)
+            %   mass: vehicle mass (kg)
+            %   wheelbase: distance from front and rear axles (m)
+            %   track_front: distance between left and right front tires (m)
+            %   track_rear: see above
+            %   yaw_inertia: moment of inertia in yaw (z) direction
 %         
 %         % Outputs
 %         velocity
@@ -18,6 +27,13 @@ classdef vd < handle
 %         position
 %         orientation
 %         tire_normal
+
+        % forces acting on the vehicle at the current timestep
+        % and location the forces are acting relative to vehicle coords
+        % format: [x1,y1,z1; x2,y2,z2; ...]
+        force_matrix = []; 
+        force_location_matrix = [];
+
         % Global is measured relative to track coordinates (vehicle
         % starts at [0,0,0]) 
         % Local is measured relative to vehicle coordinates
@@ -47,8 +63,8 @@ classdef vd < handle
             % Vehicle dynamics class constructor
             % Input suspension parameters and vehicle geometry
             if nargin == 2
-                obj.suspension_params = susp;
-                obj.vehicle_geom = vehg;
+                obj.susp_params = susp;
+                obj.veh_params = vehg;
             end
         end
         
@@ -66,8 +82,35 @@ classdef vd < handle
             global_vec = rotation_matrix * local_vec;
         end
         
-        
+        function calculate_accel(self)
+            %calculates vehicle accelerations using the force vector
+            %calculate net force first (does not include reactions)
+            net_force = sum(self.force_matrix);
+            net_moment = sum(cross(self.force_location_matrix, self.force_matrix);
             
+            self.Accel = net_force ./ self.veh_params.mass;
+            self.Ang_accel = net_moment ./ self.veh_params.yaw_inertia;
+        end
+        
+        function [dfr, dfl, drr, drl] = weight_transfer(self)
+            %calculates the change in force on each tire due to
+            %accelerations
+            Cgz = self.veh_params.Cg_xyz(3);
+            wheelbase = self.veh_params.wheelbase;
+            track_front = self.veh_params.track_front;
+            track_rear = self.veh_params.track_rear;
+            mass = self.veh_params.mass;
+            
+            longitudinal =  self.Accel(1)*mass*Cgz/wheelbase; %positive rear
+            front_lateral = self.Accel(2)*mass*Cgz/track_front; %positive right
+            rear_lateral = self.Accel(2)*mass*Cgz/track_rear;
+            
+            dfr = -longitudinal + front_lateral;
+            dfl = -longitudinal - front_lateral;
+            drr = longitudinal + rear_lateral;
+            drl = longitudinal - rear_lateral;
+        end
+               
         function update_position(self, sim_time, accel_vec, ang_accel_vec)
             %integrates accel and velocity to get position
             % sim_time is the current simulated time, used for calculating
@@ -90,6 +133,8 @@ classdef vd < handle
             aa0 = self.Ang_accel_p(:,2);
             av1 = self.Ang_vel;
             self.Ang_vel = rungekutta(av1, aa0, aa1, aa2, time_step);
+            
+            %not done
         end            
     end
 end
