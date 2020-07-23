@@ -1,48 +1,38 @@
 classdef aero < handle
-    
-
     properties
         % Inputs
         velocity;
         cl_profile;
         cd_profile;
         cop_profile;
-        
+        roh;
+        area;
+        COP;
+        lift_force;
+        lift_front_force;
+        lift_rear_force;
                 
         % Outputs
         drag_force;
-        lift_front_force;
-        lift_rear_force;
     end
     
     methods
-        function obj = aero(velocity) % used to be "cL, cD, COP
-            cL = 3.54;
-            cD = 1.03;
-            roh = 1.225; % air density kg/m^3
-            area = .839; % m^2
+        function obj = aero(self, velocity)
+            self.cl_profile = 3.54;
+            self.cd_profile = 1.03;
+            self.roh = 1.225;       % Air density kg/m^3
+            self.area = .839;       % m^2
             
-            % lift is 70% forward at 4.5 m/s, lift is 37% forward at 22 m/s
-            COP = -.0189 * velocity + .785;
+            % Lift is 70% forward at 4.5 m/s, lift is 37% forward at 22 m/s
+            self.COP = -.0189 * velocity + .785;
             
-            % lift force and balance based on speed
-            lift_force = cL * roh * .5 * area * velocity ^ 2 ;
-            lift_front_force = lift_force * COP;
-            lift_rear_force = lift_force * (1 - COP);
+            % Lift force and balance based on speed
+            self.lift_force = self.cl_profile * self.roh * .5 * self.area * velocity ^ 2;
+            self.lift_front_force = self.lift_force * self.COP;
+            self.lift_rear_force = self.lift_force * (1 - self.COP);
             
-            % drag force based on speed
-            drag_force = cD * roh * .5 * area * velocity ^ 2 ;
-            
-            %{
-            I don't think we need this, ask aero gang if concerns
-            % Aerodynamics class constructor
-            % Input cL, cD, and COP profiles
-            if nargin == 3
-                obj.cl_profile = cL;
-                obj.cd_profile = cD;
-                obj.cop_profile = COP;
-            end
-            %}
+            % Drag force based on speed
+            self.drag_force = self.cd_profile * self.roh * .5 * self.area * velocity ^ 2;
         end
     end
 end
