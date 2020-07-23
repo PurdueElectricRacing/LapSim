@@ -6,7 +6,7 @@ classdef battery < handle  % must include "handle" in order to pass and return
         coolingInputs % Possibly make this its own object
         
         % Internal values
-        OCV_table_c      %OCV vs. SOC table for charging / discharging (Volts)
+        OCV_table      %OCV vs. SOC table for charging / discharging (Volts)
         SOC_current      %current SOC (%)
         cell_s           %cells in series
         cell_p           %cells in parallel
