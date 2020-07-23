@@ -9,20 +9,22 @@ classdef aero < handle
         area;
         COP;
         lift_force;
-        lift_front_force;
-        lift_rear_force;
                 
         % Outputs
         drag_force;
+        lift_front_force;
+        lift_rear_force;
     end
     
     methods
-        function obj = aero(self, velocity)
+        function obj = aero(self)
             self.cl_profile = 3.54;
             self.cd_profile = 1.03;
             self.roh = 1.225;       % Air density kg/m^3
             self.area = .839;       % m^2
-            
+        end
+        
+        function aero_calc(self, velocity)
             % Lift is 70% forward at 4.5 m/s, lift is 37% forward at 22 m/s
             self.COP = -.0189 * velocity + .785;
             
