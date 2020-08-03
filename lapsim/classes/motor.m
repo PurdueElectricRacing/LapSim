@@ -17,6 +17,8 @@ classdef motor
         motor_current
         power_limit
         KV
+        DC_link_cap
+        DC_link_voltage
         
         % Outputs
         output_torque

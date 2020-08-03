@@ -14,6 +14,8 @@ classdef lv
         pump_eff
         batt_fan_eff
         wt_load
+        DCDC_input_cap     %input capacitance of DCDC conversion
+        input_cap_voltage
         
         % Outputs
         lv_power_cons
