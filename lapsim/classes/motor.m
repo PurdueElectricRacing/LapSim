@@ -28,6 +28,7 @@ classdef motor
         motor_torque
         shaft_torque
         motor_speed
+        power_draw;
     end
     
     methods
@@ -50,6 +51,7 @@ classdef motor
             else
                 self.motor_torque = motor_table_interp(self.motor_speed + 1, 2);
                 self.motor_power = (self.motor_speed * 0.104719755) * self.motor_torque;
+            end
 
             battery.batt_power = self.motor_power / self.motor_eff;
             battery.ActualCurrent = battery.batt_power / battery.batt_voltage;
