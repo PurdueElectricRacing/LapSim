@@ -5,13 +5,15 @@ classdef driveline
         configuration           % Rear wheel drive vs AWD (good for TC/TV testing)
         
         % Inputs
-        motor_output_torque
-        torque_load
-        %state ??like turning/cornering
+        motor_output_torque     % Output torque from Motor (N/m)
+        torque_load             % Amount of Torque required for driveline to be constantly ran
+        R_Ang_Velocity          % Right Wheel Angular Velocity (rad/s)
+        L_Ang_Velocity          % Left Wheel Angular Velocity (rads/s)
+       
         
         % Internal values
-        mechanical_efficiency
-        gear_ratio
+        mechanical_efficiency   % Mechanical Efficiency of Driveline [0-1.0]
+        gear_ratio              % Gear ratio of driveline (real numbers)
         moment_inertia
         dif_locking_coefficient
         chain_tension % If applicable
@@ -20,6 +22,7 @@ classdef driveline
         % Outputs
         wheel_torque_left
         wheel_torque_right
+        wheel_torque
     end
     
     methods
@@ -38,26 +41,38 @@ classdef driveline
             end
         end
         
-        function [wheel_torque_left,wheel_torque_right] = RunDriveline(motor_output_torque,torque_load)
+        % Driveline for Rear Wheel Drive Vehicle
+        
+        function [wheel_torque_left,wheel_torque_right] = RWD_Driveline(motor_output_torque,torque_load)
             
             motor_output_torque = obj.chain_tension * (motor_output_torque * obj.gear_ratio);
+            
+            % complex model of driveline in progress
             
             if motor_output_torque > torque_load % acceleration
                 
             elseif motor_output_torque < torque_load % deceleration
                 
             elseif motor_output_torque == torque_load % steady state
-               
+               % do nothing
             end
             
-            difTorque = differential(RAngVel,LAngVel);
+            difTorque = differential(obj.R_Ang_Velocity,obj.L_Ang_Velocity);
             wheel_torque_left = obj.mechanical_efficinecy * (0.5 * motor_output_torque + difTorque);
             wheel_torque_right = obj.mechanical_efficinecy * (0.5 * motor_output_torque - difTorque);
             
         end
         
-        function difTorque = differential(RAngVel,LAngVel)
-            difTorque = (RAngVel - LAngVel) * 0.5 * obj.viscousCoef;
+        % Basic Model of Viscous Differential
+        
+        function difTorque = differential(RAV,LAV)
+            difTorque = (RAV - LAV) * 0.5 * obj.viscousCoef;
+        end
+        
+        % Driveline for Individual Hub Motor in HM Vehicle
+        
+        function wheel_torque = HM_Driveline(motor_output_torque)
+            wheel_torque = obj.mechanical_efficiency * (motor_output_torque * obj.gear_ratio);
         end
     end
 end
