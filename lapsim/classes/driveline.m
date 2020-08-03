@@ -1,4 +1,5 @@
 classdef driveline
+    
     properties
         % Characteristics
         type                    % Hub motor vs chain drive
@@ -43,23 +44,23 @@ classdef driveline
         
         % Driveline for Rear Wheel Drive Vehicle
         
-        function [wheel_torque_left,wheel_torque_right] = RWD_Driveline(motor_output_torque,torque_load)
+        function [wheel_torque_left,wheel_torque_right] = RWD_Driveline(self)
             
-            motor_output_torque = obj.chain_tension * (motor_output_torque * obj.gear_ratio);
+            self.motor_output_torque = obj.chain_tension * (self.motor_output_torque * obj.gear_ratio);
             
-            % complex model of driveline in progress
+            % complex model of chain drive?
             
-            if motor_output_torque > torque_load % acceleration
+            %if self.motor_output_torque > self.torque_load % acceleration
                 
-            elseif motor_output_torque < torque_load % deceleration
+            %elseif self.motor_output_torque < self.torque_load % deceleration
                 
-            elseif motor_output_torque == torque_load % steady state
+            %elseif self.motor_output_torque == self.torque_load % steady state
                % do nothing
-            end
+            %end
             
-            difTorque = differential(obj.R_Ang_Velocity,obj.L_Ang_Velocity);
-            wheel_torque_left = obj.mechanical_efficinecy * (0.5 * motor_output_torque + difTorque);
-            wheel_torque_right = obj.mechanical_efficinecy * (0.5 * motor_output_torque - difTorque);
+            difTorque = differential(self.R_Ang_Velocity,self.L_Ang_Velocity);
+            wheel_torque_left = obj.mechanical_efficinecy * (0.5 * self.motor_output_torque + difTorque);
+            wheel_torque_right = obj.mechanical_efficinecy * (0.5 * self.motor_output_torque - difTorque);
             
         end
         
@@ -71,8 +72,8 @@ classdef driveline
         
         % Driveline for Individual Hub Motor in HM Vehicle
         
-        function wheel_torque = HM_Driveline(motor_output_torque)
-            wheel_torque = obj.mechanical_efficiency * (motor_output_torque * obj.gear_ratio);
+        function wheel_torque = HM_Driveline(self)
+            wheel_torque = obj.mechanical_efficiency * (self.motor_output_torque * obj.gear_ratio);
         end
     end
 end
