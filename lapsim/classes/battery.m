@@ -81,23 +81,3 @@ classdef battery < handle  % must include "handle" in order to pass and return
             %know how to model that
         end
     end
-%     methods
-%         function obj = battery(volts, mass, com)
-%             % Battery class constructor
-%             % Input load voltage, pack mass, and pack CoM
-%             if nargin == 3
-%                 obj.LoadVoltage = volts;
-%                 obj.mass_batteryPack = mass;
-%                 obj.centerMass_batteryPack = com;
-%             end
-%         end
-% 
-%         function computeState(self, time_step)
-%             % This function calculates battery capacity, SOC, and OCV and stores them into the battery class
-%             capacity_new = ((self.SOC / 100) * self.capacity) - (self.ActualCurrent * (time_step / 3600)); %new battery amp hours
-%             self.SOC = (capacity_new / self.capacity) * 100; %new battery state of charge
-%             self.capacity = capacity_new;
-%             self.new_OCV = battery_table_interp((uint16(round(self.pack_SOC, 2) * 100) + 1), 2) * self.cell_s; %new battery open circuit voltage
-%         end
-%     end
-end

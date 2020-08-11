@@ -1,24 +1,27 @@
 classdef motor
     properties
         % Inputs
-        armature_current
+        armature_current %I have no intention of using these variables but someone put them here so whatevs
         omega_e
         rms_LtoL_voltage
         coolingPower
+        
         
         % Internal values
         Lambda_m
         R_s
         max_motor_power
         max_motor_current
-        max_torque
+        max_torque %cuts off power limit if torque determination is too high
         motor_power
         motor_voltage
         motor_current
-        power_limit
+        power_limit %this helps determine max torque at any given speed
         KV
-        DC_link_cap
-        DC_link_voltage
+        DC_link_cap %inverter DC link capacitance
+        DC_link_voltage %inverer DC input volatage last
+        motor_eff_table_discharge %efficiency map of motor when in motoring mode
+        motor_eff_table_charge %efficiency map of motor when in regen mode
         
         % Outputs
         output_torque
