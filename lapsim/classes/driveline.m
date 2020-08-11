@@ -6,7 +6,7 @@ classdef driveline
         configuration           % Rear wheel drive vs AWD (good for TC/TV testing)
         
         % Inputs
-        motor_output_torque     % Output torque from Motor (N/m)
+        motor_output_torque     % Output torque from Motor (Nm)
         torque_load             % Amount of Torque required for driveline to be constantly ran
         R_Ang_Velocity          % Right Wheel Angular Velocity (rad/s)
         L_Ang_Velocity          % Left Wheel Angular Velocity (rads/s)
@@ -15,15 +15,15 @@ classdef driveline
         % Internal values
         mechanical_efficiency   % Mechanical Efficiency of Driveline [0-1.0]
         gear_ratio              % Gear ratio of driveline (real numbers)
-        moment_inertia
-        dif_locking_coefficient
-        chain_tension % If applicable
-        viscousCoef
+        moment_inertia          % Moment Inertia of driveline (not used rn)
+        dif_locking_coefficient % Locking Coefficient (not used rn)
+        chain_tension           % Chain Tension Efficiency [0-1.0]
+        viscousCoef             % LSD Viscous Coefficient
         
         % Outputs
-        wheel_torque_left
-        wheel_torque_right
-        wheel_torque
+        wheel_torque_left      % Output torque at left wheel (chain drive) [Nm]
+        wheel_torque_right     % Output torque at right wheel (chain drive) [Nm]
+        wheel_torque           % Output torque for individual hubmotor drive [Nm]
     end
     
     methods
