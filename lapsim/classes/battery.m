@@ -6,7 +6,7 @@ classdef battery < handle  % must include "handle" in order to pass and return
         coolingInputs % Possibly make this its own object
         
         % Internal values
-        OCV_table_c      %OCV vs. SOC table for charging / discharging (Volts)
+        OCV_table      %OCV vs. SOC table for charging / discharging (Volts)
         SOC_current      %current SOC (%)
         cell_s           %cells in series
         cell_p           %cells in parallel
@@ -14,6 +14,7 @@ classdef battery < handle  % must include "handle" in order to pass and return
         cell_r2_table    %r2 values vs SOC for charging / discharging (mohm)
         cell_c1_table    %c1 values vs SOC for charging / discharging (Farads)
         cell_cap         %cell capacity (Wh)
+        cap_voltage      %voltage across the "capacitor" within the cell
         
         %Outputs
         current_out      %Output current from the pack
@@ -52,6 +53,31 @@ classdef battery < handle  % must include "handle" in order to pass and return
                 disp('Power limit breached');
             end
         end
+        function [motor,battery,DCDC,time] = runcircuit(motor,battery,cables,DCDC,time, timestep)
+            if motor.power_draw + DCDC.lv_power_cons > 0
+                R = interp1(battery.cell_r1_table(:,1),battery.cell_r1_table(:,2),battery.SOC_current, 'makima');
+                R(2) = interp1(battery.battery.cell_r2_table(:,1),battery.cell_r2_table(:,2),battery.SOC_current, 'makima');
+                C = interp1(battery.cell_c1_table(:,1),battery.cell_c1_table(:,2),battery.SOC_current, 'makima');
+                OCV = interp1(battery.OCV_table(:,1),battery.OCV_table(:,2),battery.SOC_current);
+            else
+                R = interp1(battery.cell_r1_table(:,1),battery.cell_r1_table(:,3),battery.SOC_current, 'makima');
+                R(2) = interp1(battery.battery.cell_r2_table(:,1),battery.cell_r2_table(:,3),battery.SOC_current, 'makima');
+                C = interp1(battery.cell_c1_table(:,1),battery.cell_c1_table(:,3),battery.SOC_current, 'makima');
+                OCV = interp1(battery.OCV_table(:,1),battery.OCV_table(:,3),battery.SOC_current);
+            end
+            R(3) = cables.cable_r(1);
+            R(4) = cables.cable_r(2);
+            C(2) = motor.DC_link_cap;
+            C(3) = DCDC.DCDC_input_cap;
+            [t,voltages] = ode15s(@(t,voltages) HV_ODE(t,voltages,OCV,R,C,motor.power_draw,DCDC.lv_power_cons), [time(end),time(end) + timestep], [battery.cap_voltage,motor.DC_link_voltage,DCDC.input_cap_voltage]);
+            battery.voltage_out = (OCV+((R(1)/R(3)).*voltages(:,2))+((R(1)/R(4)).*voltages(3))-voltages(:,1))/(1+(R(1)/R(3))+(R(1)/R(4)));
+            battery.current_out = ((battery.voltage_out - voltages(:,2))/R(3)) + ((battery.voltage_out - voltages(:,3))/R(4));
+            battery.SOC_current = battery.SOC_current - 100 * (trapz(t/3600, battery.current_out) / battery.total_cap);
+            battery.cap_voltage = voltages(:,1);
+            motor.DC_link_voltage = voltages(:,2);
+            DCDC.input_cap_voltage = voltages(:,3);
+            time = [time;t];
+            %this would also be where heat output is determined. I don't
+            %know how to model that
+        end
     end
-end
-

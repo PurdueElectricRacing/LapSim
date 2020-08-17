@@ -1,14 +1,19 @@
 classdef aero < handle
     properties
         % Inputs
-        velocity;
-        cl_profile;
-        cd_profile;
-        cop_profile;
+        battery_data_analysis
+        velocity
+        cl_profile
+        cd_profile
+        cop_profile
+        
+        % Internal variables
+        air_density
+        Af
+        Cr
+        Al
         roh;
         area;
-        COP;
-        lift_force;
                 
         % Outputs
         drag_force;
