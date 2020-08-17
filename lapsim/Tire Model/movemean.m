@@ -1,4 +1,14 @@
 function [val] = movemean(x, y, step)
+%%
+% Summary: filters a nonuniform-density dataset by averaging ranges of data
+% into new datapoints a fixed x-distance apart.
+% Inputs:
+%  x - x data
+%  y - y data
+%  step - the size of the ranges, or the x-distance between filtered data
+% Outputs:
+%  val - filtered (x,y) data
+%%
 k = [x,y];
 [~,x_sort] = sort(k(:,1));
 k = k(x_sort,:);
