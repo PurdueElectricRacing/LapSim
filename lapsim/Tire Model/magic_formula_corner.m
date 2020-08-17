@@ -1,41 +1,151 @@
-function [out] = magic_formula_corner(nom,CA)
+function [PC_y, PC_z] = magic_formula_corner(FZ_tire,CA,lambda_mu,load_nom)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%Summary: Calculates pacejka tire model coefficients for cornering case
-%Inputs: Camber Angle [degrees]
-%Outputs By, Cy, Dy, Ey [refrence Appendix 1 of Race Car Design by Derek Seward]
+% Summary: Calculates pacejka tire model coefficients for cornering case
+% Inputs: 
+%  CA - Camber Angle [degrees]
+%  FZ_tire - actual vertical wheel load [N]
+%  lambda_mu - friction scaling factor (default = 1)
+%  load_nom - nominal wheel load to use (lbs - 50, 100, 150, 200, or 250)
+% Outputs:
+%  PC_y - [By, Cy, Dy, Ey] (reference Appendix 1 and Chp. 5 of Race Car
+%  Design by Derek Seward)
+%  PC_z - [Bz, Cz, Dz, Ez] - coefficients for aligning torque
+%   Note: aligning torque is dependent on tire pressure.  Here, 12 psi is
+%   used.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 load 'B1464run22.mat' %cornering tire data
+dataset = 22;
 Parse_Tire_Data %parse data
-    
-    FZ0=150*4.448; %Nominal load value for single wheel [N]
-    [val] = movemean(SA(FZ_150_IA_0),FY(FZ_150_IA_0),0.3); % nominal load data with 0 degree camber
-    [val_IA_4] = movemean(SA(FZ_150_IA_4),FY(FZ_150_IA_4),0.3); %nominal load data with 4 degree camber
-    [val2] = movemean(SA(FZ_50_IA_0),FY(FZ_50_IA_0),0.3); %50 lb load data with 0 degree camber
 
+switch load_nom  %determine nominal load and variation load indexes
+    case num2cell(1:74)
+        FZ_nom_i = FZ_50;   %nominal load index 
+        FZ_var_i = FZ_100;  %variation with nominal load
+        FZ0 = 50*4.448;
+        FZ_var = 100*4.448;
+    case num2cell(75:124)
+        FZ_nom_i = FZ_100;
+        FZ_var_i = FZ_50;
+        FZ0 = 100*4.448;
+        FZ_var = 50*4.448;
+    case num2cell(125:174)
+        FZ_nom_i = FZ_150;
+        FZ_var_i = FZ_50;
+        FZ0 = 150*4.448;
+        FZ_var = 50*4.448;
+    case num2cell(175:224)
+        FZ_nom_i = FZ_200;
+        FZ_var_i = FZ_50;
+        FZ0 = 200*4.448;
+        FZ_var = 50*4.448;
+    case num2cell(225:351)
+        FZ_nom_i = FZ_250;
+        FZ_var_i = FZ_50;
+        FZ0 = 250*4.448;
+        FZ_var = 50*4.448;
+    otherwise
+        FZ_nom_i = FZ_150; %default case
+        FZ_var_i = FZ_50;
+        FZ0 = 150*4.448;
+        FZ_var = 50*4.448;
+end
 
-pDY1 = max(abs(val(:,2)))/FZ0;
-idx = find(abs(val(:,2))==pDY1*FZ0); %index variable
+%get the data points from the indexes and filter
+[data_FZ_nom] = movemean(SA( intersect(FZ_nom_i, IA_0) ), FY( intersect(FZ_nom_i, IA_0) ),0.3); % nominal load data with 0 degree camber
+[data_IA_4] =   movemean(SA( intersect(FZ_nom_i, IA_4) ), FY( intersect(FZ_nom_i, IA_4) ),0.3); %nominal load data with 4 degree camber
+[data_FZ_var] = movemean(SA( intersect(FZ_var_i, IA_0) ), FY( intersect(FZ_var_i, IA_0) ),0.3); %50 lb load data with 0 degree camber
 
-xm = val(idx,1)*pi/180;
+[data_FZ_nom_MZ] = movemean(SA( intersect(intersect(FZ_nom_i, IA_0),P_12) ), MZ( intersect(intersect(FZ_nom_i, IA_0),P_12) ),0.5); 
+[data_IA_4_MZ] =   movemean(SA( intersect(intersect(FZ_nom_i, IA_4),P_12) ), MZ( intersect(intersect(FZ_nom_i, IA_4),P_12) ),0.5); 
+[data_FZ_var_MZ] = movemean(SA( intersect(intersect(FZ_var_i, IA_0),P_12) ), MZ( intersect(intersect(FZ_var_i, IA_0),P_12) ),0.5); 
+% "movemean" is a moving average filtering function
 
-del_mu = max(abs(val(:,2)))/(FZ0)- max(abs(val2(:,2)))/(50*4.448); %calc delta from max lateral force friction
-del_fz = (FZ0-50*4.448); %calc delta normal load
+%vertical offset correction 
+FY_offset = mean(data_FZ_nom(:,2));
+data_FZ_nom(:,2) = data_FZ_nom(:,2) - FY_offset;
+FY_offset = mean(data_FZ_var(:,2));
+data_FZ_var(:,2) = data_FZ_var(:,2) - FY_offset;
 
+MZ_offset = mean(data_FZ_nom_MZ(:,2));
+data_FZ_nom_MZ(:,2) = data_FZ_nom_MZ(:,2) - MZ_offset;
+MZ_offset = mean(data_FZ_var_MZ(:,2));
+data_FZ_var_MZ(:,2) = data_FZ_var_MZ(:,2) - MZ_offset;
+
+%step 2: pDY1
+Dy_nom = (max(data_FZ_nom(:,2)) - min(data_FZ_nom(:,2)))./2;
+[~,idx] = max(data_FZ_nom(:,2));
+pDY1 = Dy_nom / FZ0; %lateral friction coefficient at nominal load
+
+xm = abs(data_FZ_nom(idx,1))*pi/180; %target slip angle, radians
+
+%step 8: pDY2
+del_mu = max(abs(data_FZ_nom(:,2)))/(FZ0)- max(abs(data_FZ_var(:,2)))/(FZ_var); %calc delta from max lateral force friction
+del_fz = (FZ0-FZ_var); %calc delta normal load
 pDY2 = del_mu/del_fz*FZ0;
-pDY3 = (1- max(abs(val_IA_4(:,2)))/(FZ0*pDY1))/(4*pi/180)^2;
-Dy = nom*(pDY1+pDY2*(nom-FZ0)/150)*(1-pDY3*(CA*pi/180)^2);
+
+%step 9: pDY3
+pDY3 = (1 - max(abs(data_IA_4(:,2)))/(FZ0*pDY1) ) / (4*pi/180)^2;
+
+%calculate Dy
+dFZ = (FZ_tire-FZ0)/FZ0;
+Dy = FZ_tire*(pDY1 + pDY2*dFZ)*(1 - pDY3*(CA*pi/180)^2)*lambda_mu;
+
+%step 4: pCY1 and Cy
+kf = 0.7; %correction factor due to data not capturing the real asymptote
+ya150 = abs(data_FZ_nom(end,2))*kf; % asymptote of FY/SA curve, nominal load
+pCY1 = (1 + (1 - (2/pi)*asin(ya150/Dy_nom)));
+Cy = pCY1;
+%with the right kf, Cy ~= 1.5 and pEY1 ~= 0
+
+By = slope(data_FZ_nom,0,1)*-180/(pi*Dy*Cy);
+pEY1 = (By*xm-tan(pi/(2*pCY1)))/(By*xm-atan(By*xm));
+Ey = pEY1;  %zero camber only
+
+PC_y = [By, Cy, Dy, Ey];
 
 
-ya150 = abs(val(end)); % max offset
-pCY1 = (1 + (1 - (2/pi)*asin(ya150/Dy*pi/180)));
+% aligning torque coefficients
+
+%step 2: pDY1
+Dy_nom = (max(data_FZ_nom_MZ(2:end-1,2)) - min(data_FZ_nom_MZ(2:end-1,2)))./2;
+[~,idx] = max(data_FZ_nom_MZ(2:end-1,2));
+pDY1 = Dy_nom / FZ0; %aligning torque "friction" coefficient at nominal load
+
+xm = abs(data_FZ_nom_MZ(idx+1,1))*pi/180; %indicator slip angle, where aligning torque is maximum
+
+%step 8: pDY2
+del_mu = max(abs(data_FZ_nom_MZ(2:end-1,2)))/(FZ0)- max(abs(data_FZ_var_MZ(2:end-1,2)))/(FZ_var); %calc delta from max lateral force friction
+del_fz = (FZ0-FZ_var); %calc delta normal load
+pDY2 = del_mu/del_fz*FZ0;
+
+%step 9: pDY3
+pDY3 = (1 - max(abs(data_IA_4_MZ(2:end-1,2)))/(FZ0*pDY1) ) / (4*pi/180)^2;
+
+%calculate Dy
+dFZ = (FZ_tire-FZ0)/FZ0;
+Dy = FZ_tire*(pDY1 + pDY2*dFZ)*(1 - pDY3*(CA*pi/180)^2)*lambda_mu;
+
+%step 4: pCY1 and Cy
+kf = -1; %correction factor due to data not capturing the real asymptote
+ya150 = data_FZ_nom_MZ(end-1,2)*kf; % asymptote of MZ/SA curve, nominal load
+pCY1 = (1 + (1 - (2/pi)*asin(ya150/Dy_nom)));
 Cy = pCY1;
 
-By = slope(val,0,1)*-180/(pi*Dy*Cy);
+By = slope(data_FZ_nom_MZ,0,1)*180/(pi*Dy*Cy);
 pEY1 = (By*xm-tan(pi/(2*pCY1)))/(By*xm-atan(By*xm));
-Ey = pEY1;
+Ey = pEY1;  %zero camber only
 
-out = [By, Cy, Dy, Ey];
+PC_z = [By, Cy, Dy, Ey];
+
+% 
+% figure(2)
+% hold on
+% plot(data_FZ_nom(:,1)*-pi/180,data_FZ_nom(:,2),".")
+% 
+% figure(4)
+% hold on
+% plot(data_FZ_nom_MZ(:,1)*pi/180,data_FZ_nom_MZ(:,2),".")
 
 %Print for debugging
 
@@ -48,9 +158,10 @@ out = [By, Cy, Dy, Ey];
     % fprintf('Ex: %d\n',Ey);
 
 %plot for debugging
-
-    %calc = -Dy*sin(Cy*atan(By*SA(FZ_50_IA_0)*pi/180-Ey*(By*SA(FZ_50_IA_0)*pi/180-atan(By*SA(FZ_50_IA_0)*pi/180))));
-    %plot(SA(FZ_50_IA_0),calc, '.')
-    %hold on
-    %plot(val(:,1),val(:,2),'.');
+%     figure(2);
+%     hold on
+%     calc = -Dy*sin(Cy*atan(By*SA(FZ_150_IA_0)*pi/180-Ey*(By*SA(FZ_150_IA_0)*pi/180-atan(By*SA(FZ_150_IA_0)*pi/180))));
+%     plot(SA(FZ_150_IA_0),calc, '.')
+%     plot(data_FZ_150(:,1),data_FZ_150(:,2),'.');
+    
 end
