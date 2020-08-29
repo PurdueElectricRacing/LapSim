@@ -135,7 +135,48 @@ classdef vd < handle
             self.Ang_vel = rungekutta(av1, aa0, aa1, aa2, time_step);
             
             %not done
-        end            
+        end
+         function [dfr, dfl, drr, drl] = weight_transfer_variable(self)
+            %calculates the change in force on each tire due to
+            %accelerations
+            Cgz = self.veh_params.Cg_xyz(3);
+            wheelbase = self.veh_params.wheelbase;
+            track_front = self.veh_params.track_front;
+            track_rear = self.veh_params.track_rear;
+            mass = self.veh_params.mass;
+            
+            syms v_max;
+            lat_accel_capacity = v_max^2 / corner;
+            
+            longitudinal =  self.Accel(1)*mass*Cgz/wheelbase; %positive rear
+            front_lateral = lat_accel_capacity*mass*Cgz/track_front; %positive right
+            rear_lateral = lat_accel_capacity*mass*Cgz/track_rear;
+            
+            dfr = -longitudinal + front_lateral;
+            dfl = -longitudinal - front_lateral;
+            drr = longitudinal + rear_lateral;
+            drl = longitudinal - rear_lateral;
+        end
+        
+        function [max_speed_table] = max_corner_speed(??track_inputs??,tire_coeffs)
+            %determines maximum corner speed for each corner and outputs to
+            %table based on track input table
+            i=1
+            for ??track_inputs?? i=1:length(??track_inputs??)
+                if %CORNER VAL = %CORNER VAL  true if line in track table is a corner not a straight
+                    syms v_max;    %variable to solve for
+                    [dfr, dfl, drr, drl] = weight_transfer_variable(self);   %determine weight transfer in terms of v_max
+                    lat_accel = v_max^2 / rho;                              %expression for lateral acceleration in terms of v_max
+                    acceleration = (tire_coeffs * (dfr + dfl + drr +drl)) / self.mass == lat_accel;     %available traction @ v_max == lateral accel @v_max
+                    max_speed_table(i) = vpasolve(accceleration, v_max);        %solve for v_max in this corner and put in max_speed_table
+                    i=i+1;                      %increment index value
+                else  % if line of track table is a straight
+                    max_speed_table(i) = 0;     %placeholder for v_max on straightaway
+                    i=i+1;          %increment index value
+                end
+               
+            end
+        end
     end
 end
 
