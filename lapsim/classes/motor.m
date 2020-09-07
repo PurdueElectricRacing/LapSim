@@ -35,13 +35,15 @@ classdef motor
     end
     
     methods
-        function obj = motor(lm, rs)
-            % Motor class constructor
-            % Input lambda_m and r_s
-            if nargin == 2
-                obj.Lambda_m = lm;
-                obj.R_s = rs;
-            end
+        function obj = motor(raw_vals)
+            obj.Lambda_m          = raw_vals(1);
+            obj.R_s               = raw_vals(2);
+            obj.max_motor_power   = raw_vals(3);
+            obj.max_motor_current = raw_vals(4);
+            obj.max_torque        = raw_vals(5);
+            obj.power_limit       = raw_vals(6);
+            obj.KV                = raw_vals(7);
+            obj.DC_link_cap       = raw_vals(8);
         end
 
         function motor_run(self, battery, vd, max_torque_traction)

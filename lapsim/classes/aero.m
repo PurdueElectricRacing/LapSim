@@ -22,11 +22,11 @@ classdef aero < handle
     end
     
     methods
-        function obj = aero(self)
-            self.cl_profile = 3.54;
-            self.cd_profile = 1.03;
-            self.roh = 1.225;       % Air density kg/m^3
-            self.area = .839;       % m^2
+        function obj = aero(raw_vals)
+            obj.cl_profile = raw_vals(1);
+            obj.cd_profile = raw_vals(2);
+            obj.roh        = raw_vals(3); % Air density kg/m^3
+            obj.area       = raw_vals(4); % m^2
         end
         
         function aero_calc(self, velocity)

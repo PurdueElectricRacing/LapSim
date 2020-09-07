@@ -22,13 +22,10 @@ classdef hv
     end
     
     methods
-        function obj = hv(r, z)
-            % HV class constructor
-            % Input cabling resistance/impedance
-            if nargin == 2
-                obj.cable_r = r;
-                obj.cable_z = z;
-            end
+        function obj = hv(raw_vals)
+            obj.cable_r     = raw_vals(1);
+            obj.cable_z     = raw_vals(2);
+            obj.DC_link_cap = raw_vals(3);
         end
     end
 end

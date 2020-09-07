@@ -27,19 +27,15 @@ classdef driveline
     end
     
     methods
-        function obj = driveline(t, c, mech_e, gr, moi, dlc, ct, visc)
-            % Driveline class constructor
-            % Input type, config, and internal values
-            if nargin == 8
-                obj.type = t;
-                obj.configuration = c;
-                obj.mechanical_efficiency = mech_e; % percentage
-                obj.gear_ratio = gr;
-                obj.moment_inertia = moi;
-                obj.dif_locking_coefficient = dlc;
-                obj.chain_tension = ct; %percentage ?
-                obj.viscousCoef = visc;
-            end
+        function obj = driveline(raw_vals)
+            obj.type                    = raw_vals(1);
+            obj.configuration           = raw_vals(2);
+            obj.mechanical_efficiency   = raw_vals(3); % Percentage
+            obj.gear_ratio              = raw_vals(4);
+            obj.moment_inertia          = raw_vals(5);
+            obj.dif_locking_coefficient = raw_vals(6);
+            obj.chain_tension           = raw_vals(7); % Percentage?
+            obj.viscousCoef             = raw_vals(8);
         end
         
         % Driveline for Rear Wheel Drive Vehicle

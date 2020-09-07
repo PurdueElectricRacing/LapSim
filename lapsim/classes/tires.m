@@ -36,13 +36,7 @@ classdef tires < handle  % must include "handle" in order to pass and return
     
     methods
         function obj = tires()
-            % constructor. this function is called when an instance is
-            % created
-            
-            %get the Pacejka coefficients for all loads in the test data
             [obj.PC_x_mat, obj.PC_y_mat, obj.PC_z_mat] = get_variable_load_params();
-            
-            %obj.Fz_nom = Fz_nom;
         end
         
         function [PC_x_interp, PC_y_interp, PC_z_interp] = interp_PCs(self)  

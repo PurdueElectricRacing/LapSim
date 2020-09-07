@@ -30,17 +30,11 @@ classdef battery < handle  % must include "handle" in order to pass and return
     end
     
     methods
-        function obj = battery(SOC, s, p, cap, mass, com)
-            % Battery class constructor
-            % Input load voltage, pack mass, and pack CoM
-            if nargin == 6
-                obj.SOC_current = SOC;
-                obj.cell_s = s;
-                obj.cell_p = p;
-                obj.cell_cap = cap;
-                obj.mass_batteryPack = mass;
-                obj.centerMass_batteryPack = com;
-            end
+        function obj = battery(raw_vals)
+            obj.SOC_current            = raw_vals(1);
+            obj.cell_s                 = raw_vals(2);
+            obj.cell_p                 = raw_vals(3);
+            obj.cell_cap               = raw_vals(4);
         end
         
         function total_cap = get.total_cap(obj)
@@ -81,3 +75,4 @@ classdef battery < handle  % must include "handle" in order to pass and return
             %know how to model that
         end
     end
+end

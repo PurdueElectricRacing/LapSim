@@ -26,18 +26,18 @@ classdef lv < handle
     end
     
     methods
-        function obj = lv(dce, pe, btfe, fmd, pmd)
-            % Low voltage electronics class constructor
-            % Input DCDC, pump, and battery fan efficiency values
-            if nargin == 5
-                obj.dcdc_eff = dce;
-                obj.pump_eff = pe;
-                obj.batt_fan_eff = btfe;
-                obj.fan_max_draw = fmd;
-                obj.pump_max_draw = pmd;
-            end
+        function obj = lv(raw_vals)
+            obj.dcdc_eff         = raw_vals(1);
+            obj.pump_eff         = raw_vals(2);
+            obj.batt_fan_eff     = raw_vals(3);
+            obj.fan_max_draw     = raw_vals(4);
+            obj.fan_max_rate     = raw_vals(5);
+            obj.fan_count        = raw_vals(6);
+            obj.pump_max_draw    = raw_vals(7);
+            obj.pump_max_rate    = raw_vals(8);
+            obj.lv_voltage       = raw_vals(9);
+            obj.coolant_temp_max = raw_vals(10);
             obj.battery_temp_max = 60;  % Max pack temp is 60 deg C as per rules
-            obj.coolant_temp_max = 50;  % I don't know what a good value for this is
         end
      
         function powerLoss(self, dt)

@@ -14,13 +14,9 @@ classdef tctv
     end
     
     methods
-        function obj = tctv(sense, specs)
-            % TC/TV class constructor
-            % Input sensor classand specs
-            if nargin == 2
-                obj.sensor_data = sense;
-                obj.specs = specs;
-            end
+        function obj = tctv()
+            obj.slip_ratio = 0;
+            obj.tire_angle = 0;
         end
     end
 end
