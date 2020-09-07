@@ -1,4 +1,4 @@
-classdef lv
+classdef lv < handle
     properties
         % Inputs
         coolant_temp
