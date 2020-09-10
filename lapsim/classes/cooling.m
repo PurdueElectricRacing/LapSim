@@ -14,12 +14,10 @@ classdef cooling
     end
     
     methods
-        function obj = cooling(at)
-            % Cooling class constructor
-            % Input ambient temperature
-            if nargin == 1
-                obj.air_temp = at;
-            end
+        function obj = cooling(raw_vals)
+            obj.air_temp      = raw_vals(1);
+            obj.system_p_loss = raw_vals(2);
+            obj.coolant_temp  = raw_vals(2); % Treat this as an intial value
         end
     end
 end
