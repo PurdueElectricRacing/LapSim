@@ -28,9 +28,45 @@ end
 fprintf('Loaded configuration file: %s\n', cfg_f)       % Let the user know which config they loaded in case they forgot to change it
 fprintf('Loaded track file: %s\n', trk_f)               % Let the user know which track they loaded in case they forgot to change it
 
+%% Precomputation
+max_table = max_corner_speed(track_table);              % Compute the max speed for each corner
+
 %% Main Run Loop
 for i = 1:tk.elements
+    % VD Calculations
+    vd_main(ae, dlne);
+    [fr, fl, rr, rl] = weight_transfer_variable(self,rho);
+    update_position(self, sim_time);
+    [dfr, dfl, drr, drl] = weight_transfer(self);
+    calculate_accel(self);
     
+    % Aero Calculations
+    aero_calc(self, velocity)
+    
+    % Battery Calculations
+    total_cap = get.total_cap(obj);
+    power_out = get.power_out(obj);
+    [motor, battery, DCDC,time] = runcircuit(motor, battery, cables, DCDC, time, timestep);
+    
+    % Driveline Calculations
+    [wheel_torque_left, wheel_torque_right] = RWD_Driveline(self);
+    difTorque = differential(RAV,LAV);
+    wheel_torque = HM_Driveline(self);
+    
+    % LV Calculations
+    powerLoss(self, dt);
+    updateCooling(self);
+    
+    % Motor Calculations
+    motor_run(self, battery, vd, max_torque_traction);
+    motor_corner(self, battery, vd, fdr, motor_table_interp);
+    motor_corner_accel(self, battery, motor_table_interp, driver);
+    
+    % Suspension Calculations
+    shock_force(self);
+    
+    % Tire Calculations
+    update_tire(self, Fz, steering_angle, veh_vel_vector, angular_vel);
 end
 
 %% Post Processing
