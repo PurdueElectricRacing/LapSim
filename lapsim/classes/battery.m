@@ -47,7 +47,8 @@ classdef battery < handle  % must include "handle" in order to pass and return
                 disp('Power limit breached');
             end
         end
-        function [motor,battery,DCDC,time] = runcircuit(motor,battery,cables,DCDC,time, timestep)
+
+        function [motor, battery, DCDC, time] = runcircuit(motor, battery, cables, DCDC, time, timestep)
             if motor.power_draw + DCDC.lv_power_cons > 0
                 R = interp1(battery.cell_r1_table(:,1),battery.cell_r1_table(:,2),battery.SOC_current, 'makima');
                 R(2) = interp1(battery.battery.cell_r2_table(:,1),battery.cell_r2_table(:,2),battery.SOC_current, 'makima');

@@ -21,12 +21,12 @@ classdef suspension < handle
     end
     
     methods
-        function obj = suspension(susp, m_unsp, m_sp)
-            obj.Ks = susp.Ks;
-            obj.Bs = susp.Bs;
-            obj.motion_ratio = susp.motion_ratio;
-            obj.m_unsp = m_unsp;
-            obj.m_sp = m_sp;
+        function obj = suspension(raw_vals)
+            obj.Ks              = raw_vals(1);
+            obj.Bs              = raw_vals(2);
+            obj.motion_ratio    = raw_vals(3);
+            obj.m_unsp          = raw_vals(4);
+            obj.m_sp            = raw_vals(5);
             
             obj.tire = tires(); %create the tire class for this wheel
         end

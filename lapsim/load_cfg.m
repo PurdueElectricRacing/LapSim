@@ -1,4 +1,4 @@
-function [ae, bat, co, dlne, dr, h, l, mo] = load_cfg(filename, rev)
+function [ae, bat, co, dlne, dr, h, l, mo, v, su] = load_cfg(filename, rev)
 %%%% load_cfg.m %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % This function loads the requested configuration    %
 % file and returns each class with loaded values     %
@@ -23,4 +23,5 @@ mo = motor(table2array(values(3:end, 16)));         % Convert motor values
 % sen = sensors(table2array(values(3:end, 18)));      % Convert sensor values (currently unused)
 % tc = tctv(table2array(values(3:end, 20)));          % Convert TC/TV values (currently unused)
 % ti = tires(table2array(values(3:end, 22)));         % Convert tire values (currently loads using external function)
-%v = vd(table2array(values(3:end, 26)));             % Convert vd values
+v = vd(table2array(values(3:end, 26)));             % Convert vd values
+su = suspension(table2array(values(3:end, 28)));    % Convert suspension values

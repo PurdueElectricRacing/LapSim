@@ -19,6 +19,7 @@ classdef driveline
         dif_locking_coefficient % Locking Coefficient (not used rn)
         chain_tension           % Chain Tension Efficiency [0-1.0]
         viscousCoef             % LSD Viscous Coefficient
+        max_motor_torque        % Maximum torque a motor can output [Nm]
         
         % Outputs
         wheel_torque_left      % Output torque at left wheel (chain drive) [Nm]
@@ -36,6 +37,7 @@ classdef driveline
             obj.dif_locking_coefficient = raw_vals(6);
             obj.chain_tension           = raw_vals(7); % Percentage?
             obj.viscousCoef             = raw_vals(8);
+            obj.max_motor_torque        = raw_vals(9);
         end
         
         % Driveline for Rear Wheel Drive Vehicle
