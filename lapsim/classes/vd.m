@@ -137,10 +137,10 @@ classdef vd < handle
             %determines maximum corner speed for each corner and outputs to
             %table based on track input table
             
-            max_speed_table = zeros(size(track_table, 1));                           % Pre-allocate size of table
+            max_speed_table = zeros(size(track_table, 1));                          % Pre-allocate size of table
 
             for i=1:size(track_table, 1)
-                if cell2mat(track_table(i,3)) ~= 0                                            % True if line in track table is a corner not a straight
+                if cell2mat(track_table(i,3)) ~= 0                                  % True if line in track table is a corner not a straight
                     rho = track_table(i,3);                                         % Corner radius for current corner
                     [fr, fl, rr, rl] = weight_transfer_variable(self, rho);         % Determine weight transfer in terms of v_max
                     max_speed_table(i) = sqrt(rho * (self.tire_coef * (fr + fl + rr + rl)) / self.vehicle_mass);
