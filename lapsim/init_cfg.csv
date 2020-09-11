@@ -8,7 +8,7 @@ area,0.839,cell_cap,1,,,gear_ratio,1,brake_bal,1,,,fan_max_draw,1,max_motor_curr
 ,,,,,,dif_locking_coeff,1,,,,,fan_count,1,power_limit,1,,,,,PC_y_mat,1,,,wheelbase,1,,,
 ,,,,,,chain_tension,1,,,,,pump_max_draw,1,KV,1,,,,,PC_x,1,,,track_front,1,,,
 ,,,,,,viscousCoef,1,,,,,pump_max_rate,1,DC_link_cap,1,,,,,PC_y,1,,,track_rear,1,,,
-,,,,,,max_motor_torque,1,,,,,lv_voltage,1,,,,,,,,,,,tire_coef,1.5,,,
+,,,,,,max_motor_torque,80000,,,,,lv_voltage,1,,,,,,,,,,,tire_coef,1.5,,,
 ,,,,,,,,,,,,coolant_temp_max,1,,,,,,,,,,,num_motor,4,,,
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,
 ,,,,,,,,,,,,,,,,,,,,,,,,,,,,vet

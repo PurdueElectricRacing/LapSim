@@ -28,6 +28,7 @@ classdef vd < handle
         Ang_accel = [0;0;0];    %[roll;pitch;yaw] acceleration (local)
 
         velocity % NOTE: THIS IS ONLY HERE UNTIL WE MOVE TO A 3 AXIS SYSTEM
+        max_velocity
         
         % Previous timestep values:
         Time_p = [0 0 0];
@@ -56,6 +57,7 @@ classdef vd < handle
             obj.tire_coef    = raw_vals(9);
             obj.num_motor    = raw_vals(10);
             obj.velocity     = 0;
+            obj.max_velocity = 0;
         end
         
         function local_vec = global2local(self, global_vec)
@@ -139,65 +141,92 @@ classdef vd < handle
 
             for i=1:size(track_table, 1)
                 if cell2mat(track_table(i,3)) ~= 0                                            % True if line in track table is a corner not a straight
-                    syms v_max;                                                     % Variable to solve for
                     rho = track_table(i,3);                                         % Corner radius for current corner
-                    lat_accel = v_max^2 / rho;                                      % Expression for lateral acceleration in terms of v_max
                     [fr, fl, rr, rl] = weight_transfer_variable(self, rho);         % Determine weight transfer in terms of v_max
-                    acceleration_eq = (self.tire_coef * (fr + fl + rr + rl)) / self.vehicle_mass == lat_accel;   % Available traction @ v_max == lateral accel @v_max: this is just an equation that is solved for the max velocity in the next line
-                    max_speed_table(i) = vpasolve(v_max, acceleration_eq);    % Solve for v_max in this corner and put in max_speed_table
+                    max_speed_table(i) = sqrt(rho * (self.tire_coef * (fr + fl + rr + rl)) / self.vehicle_mass);
                 else                                                                % If line of track table is a straight
                     max_speed_table(i) = 0;                                         % Placeholder for v_max on straightaway
                 end
             end
         end
-  
-        function [motor_torque_used, curr_velocity] = vd_main(self, aero, drivetrain, track_table, max_table, dt)
-            %inputs: "max_motor_torque" instantanously at wheel center for current conditions in Newton-meters, system time step (seconds), car mass (kg), track table
-            %outputs: current velocity, motor_torque_used for one wheel given time step
-            max_motor_torque = drivetrain.max_motor_torque; %%%%%%get input of max instanteous torque
 
-            curr_velocity = self.velocity;
-
-            radius = cell2mat(track_table(self.k,3)); %get radius of turn
-            if radius ~= 0
-                corner = 0; %not in a corner
-            else
-                corner = 1; % in a corner
-                curr_velocity = max_table(self.k);
+        % TODO: Make sure first element of the track is not a corner
+        %       Dynamic calculation of cornering speed
+        %       Dynamic calculation of cornering torque
+        %       Smooth corner exit for high time steps
+        %       Remove '=' from last_element__ set if logic checks out
+        %       Move to a system that asks motor class if we can output set
+        %       torque and back off if we can't
+        %       Remove calculation of rr prior to velocity update somehow
+        
+        % NOTE: Persistent variables will end in '__' to ensure that we
+        %       don't accidentally have two variables with the same name
+        function vd_main(self, ae, dr, mo, track_table, max_corner_table, dt)
+            persistent element_remain__;                                            % Distance to end of element [m]
+            persistent in_element__;                                                % Boolean marking if we are in a corner
+            persistent last_element__;                                              % Boolean marking if we are in the last element of the track
+            
+            if isempty(element_remain__)                                            % Check if this is the first iteration
+                element_remain__ = str2double(track_table(self.k, 2));              % It is, so load the first element
+                in_element__ = true;                                                % Mark us as actively being in a new element
+                last_element__ = false;                                             % Initialize to false
             end
-
-            dist_corner = cell2mat(track_table(self.k, 2)) - (dt * curr_velocity); %calc distance to corner with straight length and distance change
-            if dist_corner <= 0
-                self.k = self.k + 1; %increment to next part of track
-            end
-
-            low_velocity = sqrt(curr_velocity^2 + (-19.62)*dist_corner); %determine lowest acheivable velocity at start of turn with 2G of braking
-
-            RR_force = (.005 + (1/1.379) * (0.01+0.0095*((curr_velocity*1000)/100)^2))*(self.vehicle_mass*9.81); %calc current rolling resistance
-            drag_force = aero.drag_force; %call aero "aero_calc" function and get output of self.drag_force
-
-            if curr_velocity <= max_table(self.k) && max_table(self.k) >= low_velocity(1) && corner == false %checks if car can still accelerate and be able to brake in time
-                motor_force = max_motor_torque / self.wheel_radius; %calc acceleration force of car
-                fric_force = self.tire_coef * self.vehicle_mass / 4; %
-                if motor_force < fric_force
-                    accel_force = motor_force * self.num_motor;
-                    motor_torque_used = max_motor_torque;
-                else
-                    accel_force = fric_force * self.num_motor;
-                    motor_torque_used = fric_force / self.wheel_radius;
+            
+            % Check if we need to move to the next element
+            if in_element__ == false
+                self.k = self.k + 1;                                                % Jump to the next track element
+                element_remain__ = str2double(track_table(self.k, 2));              % Update the length until the exit of this element
+                in_element__ = true;                                                % Mark us as actively being in a new element
+                if self.k >= size(track_table, 1)                                   % Check if we are in the last element
+                    last_element__ = true;                                          % Mark us as being in the last element
                 end
-
-                curr_velocity = curr_velocity +(((accel_force*self.num_motor) - RR_force - drag_force)/self.vehicle_mass * dt); %accelerate car
-
-            elseif curr_velocity > max_table(self.k) && corner == false %checks if car needs to brake
-                curr_velocity = curr_velocity + (curr_velocity - (19.62*dt)); %brakes car at -2G
-                motor_torque_used = 0;
-
-            else %checks if car should stay going same velocity b/c its in a turn
-                motor_torque_used = (RR_force + drag_force) / self.num_motor * self.wheel_radius; %overcome rolling resistance and drag
             end
-
-            self.velocity = curr_velocity;
+            
+            % Calculate force due to rolling resistance
+            rr_force = (0.005 + (1 / 1.379) * (0.01 + 0.0095 * ((self.velocity / 100) ^ 2))) * self.vehicle_mass * 9.81;
+            
+            % Update velocity and distance to end of element
+            if str2double(track_table(self.k, 3)) ~= 0                              % Check if we are in a corner
+                self.velocity = max_corner_table(self.k);                           % We are, so assume we're going max speed
+                element_remain__ = element_remain__ - (dt * self.velocity);         % Update distance remaining after this iteration
+                if element_remain__ <= 0                                            % Check if we have reached the end of the corner
+                    in_element__ = false;                                           % We are, so move to the next track element
+                end
+                % Calculate and update torque used
+                mo.motor_torque = (rr_force + ae.drag_force) / self.num_motor * self.wheel_radius;
+            else                                                                    % We aren't in a corner
+                % Calculate the maximum entry speed for the next corner
+                corner_entry_v = sqrt(self.velocity ^ 2 - 19.62 * element_remain__);
+                if length(corner_entry_v) ~= 1                                      % Check if we get an imaginary value
+                    corner_entry_v = inf;                                           % Override to inf so we have a scalar again
+                elseif corner_entry_v ~= real(corner_entry_v)                       % One more check
+                    corner_entry_v = inf;                                           % Override to inf so we have a scalar again
+                end
+                if self.velocity >= corner_entry_v && ~last_element__               % Check if we need to brake
+                    self.velocity = self.velocity - (19.62 * dt);                   % We do, so start slowing down
+                    mo.motor_torque = 0;                                            % Command 0 torque under braking
+                else                                                                % MORE POWER!!!!!!!
+                    motor_force = dr.max_motor_torque / self.wheel_radius;          % Command max torque and calculate force
+                    fric_force = self.tire_coef * self.vehicle_mass / 4;            % Calculate force due to friction
+                    if motor_force <= fric_force                                    % Check if we've asked for too much power
+                        accel_force = motor_force * self.num_motor;                 % We haven't, so calculate acceleration force
+                        mo.motor_torque = dr.max_motor_torque;                      % Command max torque
+                    else                                                            % We've asked for too much power
+                        accel_force = fric_force * self.num_motor;                  % So scale back to max that friction will allow
+                        mo.motor_torque = fric_force / self.wheel_radius;           % Update the torque used to reflect change
+                    end
+                    % Update velocity
+                    self.velocity = self.velocity + ((((accel_force * self.num_motor) - rr_force - ae.drag_force) / self.vehicle_mass) * dt);
+                end
+                element_remain__ = element_remain__ - (dt * self.velocity);         % Update distance remaining after this iteration
+                if element_remain__ <= 0                                            % Check if we have reached the end of the corner
+                    in_element__ = false;                                           % We are, so move to the next track element
+                end
+            end
+            
+            if self.velocity > self.max_velocity                                    % Check if we have exceeded our last max velocity
+                self.max_velocity = self.velocity;                                  % Update max velocity reached
+            end
         end
     end
 end

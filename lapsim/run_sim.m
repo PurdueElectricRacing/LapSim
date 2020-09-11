@@ -8,12 +8,13 @@
 close all                                               % Close all figures
 warning('OFF', 'MATLAB:table:ModifiedAndSavedVarnames') % Turn off stupid warning
 clc                                                     % Clear the terminal
+clear all                                               % Disregard error. It's important to have
 
 %% Value Loading
 cfg_f = 'init_cfg.csv';                                 % Configuration file name
-tk_f = 'accel.csv';                                     % Track file name
+tk_f = 'autox.csv';                                     % Track file name
 current_rev = 1.0;                                      % This number must match the configuration file's revision number
-dt = 1;                                                 % Timestep for the lapsim
+dt = 0.01;                                              % Timestep for the lapsim
 sim_time = 0;                                           % Current point in time for the lapsim
 
 % Read the config file and return constructed classes
@@ -34,15 +35,12 @@ fprintf('Loaded track file: %s\n', tk_f)                % Let the user know whic
 max_table = v.max_corner_speed(tk.raw_track);           % Compute the max speed for each corner
 
 %% Main Run Loop
-while v.k <= tk.elements
-    % VD Calculations
-    [motor_torque_used, curr_velocity] = v.vd_main(ae, dlne, tk.raw_track, max_table, dt);
-    ae.aero_calc(curr_velocity);
-    v.update_position(sim_time); % Currently does nothing
+while v.k < tk.elements
+    v.vd_main(ae, dlne, mo, tk.raw_track, max_table, dt);
+    ae.aero_calc(v);
+   % v.update_position(sim_time); % Currently does nothing
     sim_time = sim_time + dt;
-%     
-%     % Aero Calculations
-%     aero_calc(self, velocity)
+
 %     
 %     % Battery Calculations
 %     total_cap = get.total_cap(obj);
@@ -71,3 +69,5 @@ while v.k <= tk.elements
 end
 
 %% Post Processing
+fprintf("Max speed: %f\n", v.max_velocity)
+fprintf("Total time: %f\n", sim_time - dt)

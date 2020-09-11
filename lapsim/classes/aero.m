@@ -31,17 +31,17 @@ classdef aero < handle
             obj.drag_force = 0;
         end
         
-        function aero_calc(self, velocity)
+        function aero_calc(self, v)
             % Lift is 70% forward at 4.5 m/s, lift is 37% forward at 22 m/s
-            self.cop_profile = -.0189 * velocity + .785;
+            self.cop_profile = -.0189 * v.velocity + .785;
             
             % Lift force and balance based on speed
-            self.lift_force = self.cl_profile * self.roh * .5 * self.area * velocity ^ 2;
+            self.lift_force = self.cl_profile * self.roh * .5 * self.area * v.velocity ^ 2;
             self.lift_front_force = self.lift_force * self.cop_profile;
             self.lift_rear_force = self.lift_force * (1 - self.cop_profile);
             
             % Drag force based on speed
-            self.drag_force = self.cd_profile * self.roh * .5 * self.area * velocity ^ 2;
+            self.drag_force = self.cd_profile * self.roh * .5 * self.area * v.velocity ^ 2;
         end
     end
 end

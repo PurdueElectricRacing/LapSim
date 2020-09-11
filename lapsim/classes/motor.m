@@ -1,4 +1,4 @@
-classdef motor
+classdef motor < handle
     properties
         % Inputs
         armature_current %I have no intention of using these variables but someone put them here so whatevs
