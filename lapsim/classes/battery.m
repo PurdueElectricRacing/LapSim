@@ -35,6 +35,17 @@ classdef battery < handle  % must include "handle" in order to pass and return
             obj.cell_s                 = raw_vals(2);
             obj.cell_p                 = raw_vals(3);
             obj.cell_cap               = raw_vals(4);
+            obj.voltage_out            = raw_vals(5);
+            
+            table = readtable('VTC6_Data.csv');         % Load the cell data into Matlab
+            obj.cell_r1_table = table2array(table(4:12, 15:16));
+            obj.cell_r1_table = str2double(obj.cell_r1_table);
+            obj.cell_r2_table = [table2array(table(4:12, 15)), table2array(table(4:12, 17))];
+            obj.cell_r2_table = str2double(obj.cell_r2_table);
+            obj.cell_c1_table = [table2array(table(4:12, 15)), table2array(table(4:12, 18))];
+            obj.cell_c1_table = str2double(obj.cell_c1_table);
+            obj.OCV_table     = table2array(table(4:end, 6:7));
+            obj.OCV_table     = str2double(obj.OCV_table);
         end
         
         function total_cap = get.total_cap(obj)
@@ -48,30 +59,30 @@ classdef battery < handle  % must include "handle" in order to pass and return
             end
         end
 
-        function [motor, battery, DCDC, time] = runcircuit(motor, battery, cables, DCDC, time, timestep)
-            if motor.power_draw + DCDC.lv_power_cons > 0
-                R = interp1(battery.cell_r1_table(:,1),battery.cell_r1_table(:,2),battery.SOC_current, 'makima');
-                R(2) = interp1(battery.battery.cell_r2_table(:,1),battery.cell_r2_table(:,2),battery.SOC_current, 'makima');
-                C = interp1(battery.cell_c1_table(:,1),battery.cell_c1_table(:,2),battery.SOC_current, 'makima');
-                OCV = interp1(battery.OCV_table(:,1),battery.OCV_table(:,2),battery.SOC_current);
+        function runcircuit(self, mo, l, h, time, timestep)
+            if mo.power_draw + l.lv_power_cons > 0
+                R = interp1(self.cell_r1_table(:,1),self.cell_r1_table(:,2),self.SOC_current, 'makima');
+                R(2) = interp1(self.cell_r2_table(:,1),self.cell_r2_table(:,2),self.SOC_current, 'makima');
+                C = interp1(self.cell_c1_table(:,1),self.cell_c1_table(:,2),self.SOC_current, 'makima');
+                OCV = interp1(self.OCV_table(:,1),self.OCV_table(:,2),self.SOC_current);
             else
-                R = interp1(battery.cell_r1_table(:,1),battery.cell_r1_table(:,3),battery.SOC_current, 'makima');
-                R(2) = interp1(battery.battery.cell_r2_table(:,1),battery.cell_r2_table(:,3),battery.SOC_current, 'makima');
-                C = interp1(battery.cell_c1_table(:,1),battery.cell_c1_table(:,3),battery.SOC_current, 'makima');
-                OCV = interp1(battery.OCV_table(:,1),battery.OCV_table(:,3),battery.SOC_current);
+%                 R = interp1(self.cell_r1_table(:,1),self.cell_r1_table(:,3),self.SOC_current, 'makima');
+%                 R(2) = interp1(self.battery.cell_r2_table(:,1),self.cell_r2_table(:,3),self.SOC_current, 'makima');
+%                 C = interp1(self.cell_c1_table(:,1),self.cell_c1_table(:,3),self.SOC_current, 'makima');
+%                 OCV = interp1(self.OCV_table(:,1),self.OCV_table(:,3),self.SOC_current);
             end
-            R(3) = cables.cable_r(1);
-            R(4) = cables.cable_r(2);
-            C(2) = motor.DC_link_cap;
-            C(3) = DCDC.DCDC_input_cap;
-            [t,voltages] = ode15s(@(t,voltages) HV_ODE(t,voltages,OCV,R,C,motor.power_draw,DCDC.lv_power_cons), [time(end),time(end) + timestep], [battery.cap_voltage,motor.DC_link_voltage,DCDC.input_cap_voltage]);
-            battery.voltage_out = (OCV+((R(1)/R(3)).*voltages(:,2))+((R(1)/R(4)).*voltages(3))-voltages(:,1))/(1+(R(1)/R(3))+(R(1)/R(4)));
-            battery.current_out = ((battery.voltage_out - voltages(:,2))/R(3)) + ((battery.voltage_out - voltages(:,3))/R(4));
-            battery.SOC_current = battery.SOC_current - 100 * (trapz(t/3600, battery.current_out) / battery.total_cap);
-            battery.cap_voltage = voltages(:,1);
-            motor.DC_link_voltage = voltages(:,2);
-            DCDC.input_cap_voltage = voltages(:,3);
-            time = [time;t];
+            R(3) = h.cable_r;
+            R(4) = h.cable_r;
+            C(2) = mo.DC_link_cap;
+            C(3) = h.DCDC_input_cap;
+            xp = @(t,voltages) HV_ODE(t,voltages,OCV,R,C,mo.power_draw,l.lv_power_cons);
+            [t,voltages] = ode15s(xp, [time(end),time(end) + timestep], 0, [self.cap_voltage,mo.DC_link_voltage,h.input_cap_voltage]);
+            self.voltage_out = (OCV+((R(1)/R(3)).*voltages(:,2))+((R(1)/R(4)).*voltages(3))-voltages(:,1))/(1+(R(1)/R(3))+(R(1)/R(4)));
+            self.current_out = ((self.voltage_out - voltages(:,2))/R(3)) + ((self.voltage_out - voltages(:,3))/R(4));
+            self.SOC_current = self.SOC_current - 100 * (trapz(t/3600, self.current_out) / self.total_cap);
+            self.cap_voltage = voltages(:,1);
+            mo.DC_link_voltage = voltages(:,2);
+            h.input_cap_voltage = voltages(:,3);
             %this would also be where heat output is determined. I don't
             %know how to model that
         end

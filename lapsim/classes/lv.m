@@ -20,6 +20,7 @@ classdef lv < handle
         coolant_temp_max;   % Maximum allowed coolant temperature in deg C
         battery_temp_max;   % Maximum allowed battery temperature in deg C
         fan_count;          % Number of fans in the battery
+        lv_draw;            % Current draw of LV system in A
         
         % Outputs
         lv_power_cons;      % Power consumption in J
@@ -37,7 +38,10 @@ classdef lv < handle
             obj.pump_max_rate    = raw_vals(8);
             obj.lv_voltage       = raw_vals(9);
             obj.coolant_temp_max = raw_vals(10);
+            obj.lv_draw          = raw_vals(11);
             obj.battery_temp_max = 60;  % Max pack temp is 60 deg C as per rules
+            obj.batt_fan_rate    = 0;
+            obj.pump_rate        = 0;
         end
      
         function powerLoss(self, dt)
@@ -51,8 +55,12 @@ classdef lv < handle
             temp = -0.5112 * ((self.pump_max_rate * self.pump_rate) ^ 2);
             temp = temp + 13.292 * (self.pump_max_rate * self.pump_rate);
             temp = temp - (10 ^ 13);
-            temp = temp / self. pump_eff;
+            temp = temp / self.pump_eff;
+            if temp < 0
+                temp = 0;
+            end
             self.lv_power_cons = self.lv_power_cons + temp;
+            self.lv_power_cons = self.lv_power_cons + (self.lv_draw * self.lv_voltage);
             self.lv_power_cons = self.lv_power_cons / self.dcdc_eff;
             self.lv_power_cons = self.lv_power_cons * dt;
         end

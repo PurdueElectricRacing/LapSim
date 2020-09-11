@@ -44,50 +44,53 @@ classdef motor < handle
             obj.power_limit       = raw_vals(6);
             obj.KV                = raw_vals(7);
             obj.DC_link_cap       = raw_vals(8);
+            obj.power_draw        = 0;
         end
 
-        function motor_run(self, battery, vd, max_torque_traction)
-            battery.batt_voltage = battery.new_OCV - (battery.ActualCurrent * battery.res_eff);
+        % TODO: Input motor_table_interp
+        
+        function motor_run(self, bat, v)
+            %bat.batt_voltage = bat.new_OCV - (bat.ActualCurrent * bat.res_eff);
             self.motor_speed = round(self.motor_speed);
 
             if self.motor_speed > max(motor_table_interp(:,1))
                 self.motor_power = self.max_motor_power;
-                self.motor_torque = motor_power / (self.motor_speed * 0.104719755);
+                self.motor_torque = self.motor_power / (self.motor_speed * 0.104719755);
             else
                 self.motor_torque = motor_table_interp(self.motor_speed + 1, 2);
                 self.motor_power = (self.motor_speed * 0.104719755) * self.motor_torque;
             end
 
-            battery.batt_power = self.motor_power / self.motor_eff;
-            battery.ActualCurrent = battery.batt_power / battery.batt_voltage;
+            bat.power_out = self.motor_power / self.motor_eff;
+            bat.current_out = bat.power_out / bat.voltage_out;
 
             if self.motor_power > self.max_motor_power
                 self.motor_power = self.max_motor_power;
                 self.motor_torque = self.motor_power / (self.motor_speed * 0.104719755);
-                battery.batt_power = self.motor_power / self.motor_eff;
-                battery.ActualCurrent = battery.batt_power / battery.batt_voltage;
+                bat.power_out = self.motor_power / self.motor_eff;
+                bat.current_out = bat.power_out / bat.voltage_out;
 
             end
 
             if self.motor_power > self.power_limit * self.motor_eff %aidan changes this line
                 self.motor_power = self.power_limit * self.motor_eff; %aidan changes this line
                 self.motor_torque = self.motor_power / (self.motor_speed * 0.104719755);
-                battery.batt_power = self.motor_power / self.motor_eff;
-                battery.ActualCurrent = battery.batt_power / battery.batt_voltage;
+                bat.power_out = self.motor_power / self.motor_eff;
+                bat.current_out = bat.power_out / bat.voltage_out;
 
             end
 
-            if battery.ActualCurrent > battery.batt_current_limit
-                battery.ActualCurrent = battery.batt_current_limit;
-                battery.batt_power = battery.ActualCurrent * battery.batt_voltage;
-                self.motor_power = battery.batt_power * self.motor_eff;
+            if bat.current_out > bat.batt_current_limit
+                bat.current_out = bat.batt_current_limit;
+                bat.power_out = bat.current_out * bat.voltage_out;
+                self.motor_power = bat.power_out * self.motor_eff;
                 self.motor_torque = self.motor_power / (self.motor_speed * 0.104719755);
             end
 
-            if battery.ActualCurrent > self.max_motor_current
-                battery.ActualCurrent = self.max_motor_current;
-                battery.batt_power = battery.ActualCurrent * battery.batt_voltage;
-                self.motor_power = battery.batt_power * self.motor_eff;
+            if bat.current_out > self.max_motor_current
+                bat.current_out = self.max_motor_current;
+                bat.power_out = bat.current_out * bat.voltage_out;
+                self.motor_power = bat.power_out * self.motor_eff;
                 self.motor_torque = self.motor_power / (self.motor_speed * 0.104719755);
 
             end
@@ -95,8 +98,8 @@ classdef motor < handle
             if self.motor_torque > self.max_torque_traction
                 self.motor_torque = self.max_torque_traction;
                 self.motor_power = self.motor_torque * (self.motor_speed * 0.104719755);
-                battery.batt_power = self.motor_power / self.motor_eff;
-                battery.ActualCurrent = battery.batt_power / battery.batt_voltage;
+                bat.power_out = self.motor_power / self.motor_eff;
+                bat.current_out = bat.power_out / bat.voltage_out;
             end 
         end
 

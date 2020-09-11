@@ -8,7 +8,7 @@
 close all                                               % Close all figures
 warning('OFF', 'MATLAB:table:ModifiedAndSavedVarnames') % Turn off stupid warning
 clc                                                     % Clear the terminal
-clear all                                               % Disregard error. It's important to have
+clear all                                               % Disregard error. It's important to clear persistent vars
 
 %% Value Loading
 cfg_f = 'init_cfg.csv';                                 % Configuration file name
@@ -38,34 +38,12 @@ max_table = v.max_corner_speed(tk.raw_track);           % Compute the max speed 
 while v.k < tk.elements
     v.vd_main(ae, dlne, mo, tk.raw_track, max_table, dt);
     ae.aero_calc(v);
-   % v.update_position(sim_time); % Currently does nothing
+    l.powerLoss(dt);
+    l.updateCooling();
+%     motor_run(bat, v);
+%     bat.runcircuit(mo, l, h, sim_time, dt);
+%     v.update_position(sim_time); % Currently does nothing
     sim_time = sim_time + dt;
-
-%     
-%     % Battery Calculations
-%     total_cap = get.total_cap(obj);
-%     power_out = get.power_out(obj);
-%     [motor, battery, DCDC,time] = runcircuit(motor, battery, cables, DCDC, time, timestep);
-%     
-%     % Driveline Calculations
-%     [wheel_torque_left, wheel_torque_right] = RWD_Driveline(self);
-%     difTorque = differential(RAV,LAV);
-%     wheel_torque = HM_Driveline(self);
-%     
-%     % LV Calculations
-%     powerLoss(self, dt);
-%     updateCooling(self);
-%     
-%     % Motor Calculations
-%     motor_run(self, battery, vd, max_torque_traction);
-%     motor_corner(self, battery, vd, fdr, motor_table_interp);
-%     motor_corner_accel(self, battery, motor_table_interp, driver);
-%     
-%     % Suspension Calculations
-%     shock_force(self);
-%     
-%     % Tire Calculations
-%     % update_tire(self, Fz, steering_angle, veh_vel_vector, angular_vel);
 end
 
 %% Post Processing
