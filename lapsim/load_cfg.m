@@ -24,4 +24,5 @@ mo = motor(table2array(values(3:end, 16)));         % Convert motor values
 % tc = tctv(table2array(values(3:end, 20)));          % Convert TC/TV values (currently unused)
 % ti = tires(table2array(values(3:end, 22)));         % Convert tire values (currently loads using external function)
 v = vd(table2array(values(3:end, 26)));             % Convert vd values
-su = suspension(table2array(values(3:end, 28)));    % Convert suspension values
+%su = suspension(table2array(values(3:end, 28)));    % Convert suspension values
+su = 0;

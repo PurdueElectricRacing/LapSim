@@ -29,6 +29,7 @@ classdef vd < handle
 
         velocity % NOTE: THIS IS ONLY HERE UNTIL WE MOVE TO A 3 AXIS SYSTEM
         max_velocity
+        wheel_torque
         
         % Previous timestep values:
         Time_p = [0 0 0];
@@ -193,7 +194,7 @@ classdef vd < handle
                     in_element__ = false;                                           % We are, so move to the next track element
                 end
                 % Calculate and update torque used
-                mo.motor_torque = (rr_force + ae.drag_force) / self.num_motor * self.wheel_radius;
+                self.wheel_torque = (rr_force + ae.drag_force) / self.num_motor * self.wheel_radius;
             else                                                                    % We aren't in a corner
                 % Calculate the maximum entry speed for the next corner
                 corner_entry_v = sqrt(self.velocity ^ 2 - 19.62 * element_remain__);
@@ -204,16 +205,19 @@ classdef vd < handle
                 end
                 if self.velocity >= corner_entry_v && ~last_element__               % Check if we need to brake
                     self.velocity = self.velocity - (19.62 * dt);                   % We do, so start slowing down
-                    mo.motor_torque = 0;                                            % Command 0 torque under braking
+                    if self.velocity < 0
+                        self.velocity = 0;
+                    end
+                    self.wheel_torque = 0;                                            % Command 0 torque under braking
                 else                                                                % MORE POWER!!!!!!!
                     motor_force = dr.max_motor_torque / self.wheel_radius;          % Command max torque and calculate force
                     fric_force = self.tire_coef * self.vehicle_mass / 4;            % Calculate force due to friction
                     if motor_force <= fric_force                                    % Check if we've asked for too much power
                         accel_force = motor_force * self.num_motor;                 % We haven't, so calculate acceleration force
-                        mo.motor_torque = dr.max_motor_torque;                      % Command max torque
+                        self.wheel_torque = dr.max_motor_torque;                      % Command max torque
                     else                                                            % We've asked for too much power
                         accel_force = fric_force * self.num_motor;                  % So scale back to max that friction will allow
-                        mo.motor_torque = fric_force / self.wheel_radius;           % Update the torque used to reflect change
+                        self.wheel_torque = fric_force / self.wheel_radius;           % Update the torque used to reflect change
                     end
                     % Update velocity
                     self.velocity = self.velocity + ((((accel_force * self.num_motor) - rr_force - ae.drag_force) / self.vehicle_mass) * dt);

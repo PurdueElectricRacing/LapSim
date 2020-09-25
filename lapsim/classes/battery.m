@@ -75,14 +75,18 @@ classdef battery < handle  % must include "handle" in order to pass and return
             R(4) = h.cable_r;
             C(2) = mo.DC_link_cap;
             C(3) = h.DCDC_input_cap;
-            xp = @(t,voltages) HV_ODE(t,voltages,OCV,R,C,mo.power_draw,l.lv_power_cons);
-            [t,voltages] = ode15s(xp, [time(end),time(end) + timestep], 0, [self.cap_voltage,mo.DC_link_voltage,h.input_cap_voltage]);
-            self.voltage_out = (OCV+((R(1)/R(3)).*voltages(:,2))+((R(1)/R(4)).*voltages(3))-voltages(:,1))/(1+(R(1)/R(3))+(R(1)/R(4)));
-            self.current_out = ((self.voltage_out - voltages(:,2))/R(3)) + ((self.voltage_out - voltages(:,3))/R(4));
+            xp = @(t,x) HV_ODE(t,x,OCV,R,C,mo.power_draw,l.lv_power_cons);
+            tspan = [time(end), (time(end) + timestep)];
+            y0 = [self.cap_voltage, mo.DC_link_voltage, h.input_cap_voltage];
+            disp(tspan)
+            disp(y0)
+            [t,x] = ode15s(@(t,x) HV_ODE(t,x,OCV,R,C,mo.power_draw,l.lv_power_cons), [0 1], [441 441 441]);
+            self.voltage_out = (OCV+((R(1)/R(3)).*x(:,2))+((R(1)/R(4)).*x(3))-x(:,1))/(1+(R(1)/R(3))+(R(1)/R(4)));
+            self.current_out = ((self.voltage_out - x(:,2))/R(3)) + ((self.voltage_out - x(:,3))/R(4));
             self.SOC_current = self.SOC_current - 100 * (trapz(t/3600, self.current_out) / self.total_cap);
-            self.cap_voltage = voltages(:,1);
-            mo.DC_link_voltage = voltages(:,2);
-            h.input_cap_voltage = voltages(:,3);
+            self.cap_voltage = x(:,1);
+            mo.DC_link_voltage = x(:,2);
+            h.input_cap_voltage = x(:,3);
             %this would also be where heat output is determined. I don't
             %know how to model that
         end
