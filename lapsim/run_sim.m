@@ -35,15 +35,32 @@ fprintf('Loaded track file: %s\n', tk_f)                % Let the user know whic
 max_table = v.max_corner_speed(tk.raw_track);           % Compute the max speed for each corner
 
 %% Main Run Loop
+i = 1;
 while v.k < tk.elements
     v.vd_main(ae, dlne, mo, tk.raw_track, max_table, dt);
     ae.aero_calc(v);
     l.powerLoss(dt);
     l.updateCooling();
     mo.motor_run(bat, v, dlne);
-    bat.runcircuit(mo, l, h, sim_time, dt);
+    [t,x] = bat.runcircuit(mo, l, h, sim_time, dt);
 %     v.update_position(sim_time); % Currently does nothing
     sim_time = sim_time + dt;
+    pd(i) = mo.power_draw;
+    SOC(i) = bat.SOC_current;
+    time(i) = sim_time;
+    %vol(i) = h.input_cap_voltage;
+    %disp(vol(i) - x(end,3))
+    %h.input_cap_voltage = x(end,3);
+    vol2(i) = mo.DC_link_voltage;
+    if bat.SOC_current > 100
+        disp("SOC illegal")
+        break
+    end
+    if i > 1 && (SOC(i) > SOC(i - 1))
+        disp("illegal Regen")
+        break
+    end
+    i = i + 1;
 end
 
 %% Post Processing

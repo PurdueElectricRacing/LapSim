@@ -76,7 +76,6 @@ classdef motor < handle
             mechanical_power = (self.motor_speed * self.motor_torque * 2 * pi()) / 60;
             efficiency = interp2(self.motor_speed_table, self.motor_trq_table, self.motor_eff_table_discharge, self.motor_speed, self.motor_torque);
             self.power_draw = mechanical_power * efficiency / 100;
-%             disp([self.power_draw, self.motor_torque, self.motor_speed])
             if self.power_draw > 60000
                 disp("too much power homie")
             end
