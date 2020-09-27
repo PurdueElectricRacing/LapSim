@@ -42,24 +42,16 @@ while v.k < tk.elements
     l.powerLoss(dt);
     l.updateCooling();
     mo.motor_run(bat, v, dlne);
-    [t,x] = bat.runcircuit(mo, l, h, sim_time, dt);
+%    [t,x] = bat.runcircuit(mo, l, h, sim_time, dt);
 %     v.update_position(sim_time); % Currently does nothing
     sim_time = sim_time + dt;
     pd(i) = mo.power_draw;
-    SOC(i) = bat.SOC_current;
-    time(i) = sim_time;
-    %vol(i) = h.input_cap_voltage;
-    %disp(vol(i) - x(end,3))
-    %h.input_cap_voltage = x(end,3);
-    vol2(i) = mo.DC_link_voltage;
-    if bat.SOC_current > 100
-        disp("SOC illegal")
-        break
+    if pd(i) == -1
+        mt(i) = mo.motor_torque;
+        ms(i) = mo.motor_speed;
     end
-    if i > 1 && (SOC(i) > SOC(i - 1))
-        disp("illegal Regen")
-        break
-    end
+    pdlv(i) = l.lv_power_cons;
+    tme(i) = sim_time - dt;
     i = i + 1;
 end
 

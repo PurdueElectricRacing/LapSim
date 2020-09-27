@@ -204,11 +204,14 @@ classdef vd < handle
                     corner_entry_v = inf;                                           % Override to inf so we have a scalar again
                 end
                 if self.velocity >= corner_entry_v && ~last_element__               % Check if we need to brake
-                    self.velocity = self.velocity - (19.62 * dt);                   % We do, so start slowing down
-                    if self.velocity < 0
+                    new_velocity = self.velocity - ((9.81 * self.tire_coef) * dt);                   % We do, so start slowing down
+                    deccel = 9.81 * self.tire_coef;
+                    if new_velocity < 0
+                        deccel = self.velocity / dt;
                         self.velocity = 0;
                     end
-                    self.wheel_torque = 0;                                            % Command 0 torque under braking
+                    fric_force = ((deccel / self.tire_coef) * self.vehicle_mass) / 4;
+                    self.wheel_torque = -fric_force / self.wheel_radius;            % Regen son
                 else                                                                % MORE POWER!!!!!!!
                     motor_force = dr.max_motor_torque / self.wheel_radius;          % Command max torque and calculate force
                     fric_force = self.tire_coef * self.vehicle_mass / 4;            % Calculate force due to friction

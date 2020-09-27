@@ -1,6 +1,6 @@
 ﻿Revision,1,,,,,,,,,,,,,,,,,,,,,,,,,,,
 Aero,,Battery,,Cooling,,Driveline,,Driver,,HV,,LV,,Motor,,Sensors,,TCTV,,Tires,,Track,,VD,,Suspension,,
-cl_profile,3.54,SOC_current,100,air_temp,1,type,1,regen_en,1,cable_r,0.002,dcdc_eff,1,Lambda_m,1,,,slip_ratio,1,Fz,1,,,vehicle_mass,200,Ks,1,
+cl_profile,3.54,SOC_current,100,air_temp,1,type,1,regen_en,1,cable_r,0.02,dcdc_eff,1,Lambda_m,1,,,slip_ratio,1,Fz,1,,,vehicle_mass,200,Ks,1,
 cd_profile,1.03,cell_s,78,system_p_loss,1,configuration,1,tc_en,1,cable_z,1,pump_eff,1,R_s,1,,,tire_angle,1,Fz_nom,1,,,wheel_radius,0.2286,Bs,1,
 roh,1.225,cell_p,7,coolant_temp,1,mechanical_efficiency,1,lc_en,1,DC_link_cap,0.05,batt_fan_eff,1,max_motor_power,1,,,,,Fx,1,,,Cg_x,1,motion_ratio,1,
 area,0.839,cell_cap,3,,,gear_ratio,12,brake_bal,1,DCDC_input_cap,0.05,fan_max_draw,1,max_motor_current,1,,,,,Fy,1,,,Cg_y,1,m_unsp,1,

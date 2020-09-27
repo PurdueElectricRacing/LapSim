@@ -69,6 +69,10 @@ classdef motor < handle
             %bat.batt_voltage = bat.new_OCV - (bat.ActualCurrent * bat.res_eff);
             self.motor_speed = (dlne.gear_ratio * v.velocity * 60) / (2 * pi() * v.wheel_radius);
             self.motor_torque = v.wheel_torque / dlne.gear_ratio;
+            if self.motor_torque < 0
+                self.power_draw = -1;
+                return
+            end
             if self.motor_torque > self.max_torque
                 disp("Over torque. This doesn't work homies.")
                 disp(self.motor_torque);
