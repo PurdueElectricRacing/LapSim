@@ -46,10 +46,8 @@ while v.k < tk.elements
 %     v.update_position(sim_time); % Currently does nothing
     sim_time = sim_time + dt;
     pd(i) = mo.power_draw;
-    if pd(i) == -1
-        mt(i) = mo.motor_torque;
-        ms(i) = mo.motor_speed;
-    end
+    mt(i) = mo.motor_torque;
+    ms(i) = mo.motor_speed;
     pdlv(i) = l.lv_power_cons;
     tme(i) = sim_time - dt;
     i = i + 1;
