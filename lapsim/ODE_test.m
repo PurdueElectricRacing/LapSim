@@ -26,7 +26,7 @@ for k = 1:26
         mpd = pd(j);
         mpd = mpd * 4;
         DCDCpd = pdlv(j);
-        if mpd == -4
+        if (mpd == -4) && (bat.SOC_current < 90)
             [bat.voltage_out, bat.current_out, mt(j), t] = regen_time(DCDCpd, ms(j), mt(j), R, C, OCV, bat.SOC_current, bat_ah, mo, bat_cap, DCDC_voltage);
             if isnan(bat.voltage_out)
 %                 disp("dingus")
@@ -38,6 +38,7 @@ for k = 1:26
             end
                 
         else
+            if(mpd < 0); mpd = 0; end
             [t,x] = ode15s(@(t,x) HV_ODE(t,x,OCV,R,C,mpd, DCDCpd), [tstart, tstart + 0.01], [bat_cap, cap_voltage, DCDC_voltage]);
             bat.voltage_out = (OCV+((R(1)/R(3)).*x(:,2)) +((R(1)/R(4)).*x(:,3)) - x(:,1))/(1+(R(1)/R(3))+(R(1)/R(4)));
             bat.current_out = ((bat.voltage_out - x(:,2))/R(3)) + ((bat.voltage_out - x(:,3))/R(4));
@@ -58,7 +59,7 @@ for k = 1:26
         bat_curr(j + endj) = bat.current_out(end);
         time(j + endj) = tstart;
         trqe(j + endj) = mt(j);
-        if(bat_curr(end) < -120)
+        if(bat_curr(end) < -(bat_ah * 10))
             disp("over regen")
             return
         end

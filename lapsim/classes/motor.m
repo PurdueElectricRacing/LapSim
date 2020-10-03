@@ -70,6 +70,10 @@ classdef motor < handle
             self.motor_speed = (dlne.gear_ratio * v.velocity * 60) / (2 * pi() * v.wheel_radius);
             self.motor_torque = v.wheel_torque / dlne.gear_ratio;
             if self.motor_torque < 0
+                if((v.velocity * 3.6) < 5)
+                    self.motor_torque = 0;
+                    self.power_draw = 0;
+                end
                 self.power_draw = -1;
                 return
             end

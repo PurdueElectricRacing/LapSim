@@ -44,7 +44,7 @@ classdef battery < handle  % must include "handle" in order to pass and return
             obj.cell_r2_table = str2double(obj.cell_r2_table);
             obj.cell_c1_table = [table2array(table(4:12, 15)), table2array(table(4:12, 18))];
             obj.cell_c1_table = str2double(obj.cell_c1_table);
-            obj.OCV_table     = table2array(table(4:end, 6:7));
+            obj.OCV_table     = table2array(table(4:1788, 6:7));
             obj.OCV_table     = str2double(obj.OCV_table);
             obj.cap_voltage   = 0.0001;
         end

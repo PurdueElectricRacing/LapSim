@@ -1,10 +1,5 @@
 function [bat_volt, bat_curr, mt, t] = regen_time(DCDCpd, ms, mt, R, C, OCV, SOC, cell_cap, mo, bat_cap, DCDC_voltage)
-if SOC > 95
-    x = SOC - 95;
-    curr_limit = (10 * cell_cap) - ((10 * cell_cap) * exp(x - 5));
-else
     curr_limit = 10 * cell_cap;
-end
     [t,x] = ode15s(@(t,x) regen_ode(t,x,R,C,OCV, -curr_limit, DCDCpd), [0, 0.01], [bat_cap, DCDC_voltage]);
     bat_volt = OCV + (curr_limit * R(1)) - x(:,1);
     bat_curr = repmat(-curr_limit, size(bat_volt, 1), 1);
@@ -32,4 +27,5 @@ end
         bat_curr = NaN;
         return
     end
+    mt = regen_torque;
 end
