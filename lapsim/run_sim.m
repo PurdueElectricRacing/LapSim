@@ -12,7 +12,7 @@ clear all                                               % Disregard error. It's 
 
 %% Value Loading
 cfg_f = 'init_cfg.csv';                                 % Configuration file name
-tk_f = 'autox.csv';                                     % Track file name
+tk_f = 'accel.csv';                                     % Track file name
 current_rev = 1.0;                                      % This number must match the configuration file's revision number
 dt = 0.01;                                              % Timestep for the lapsim
 sim_time = 0;                                           % Current point in time for the lapsim

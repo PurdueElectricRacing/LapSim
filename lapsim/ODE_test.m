@@ -1,6 +1,7 @@
 bat.SOC_current = 100;
 clear SOC bat_volt bat_curr time trqe
 
+timestep = 0.1;
 
 bat_ah = bat.total_cap / (bat.cell_s * mean(bat.OCV_table(:,2)));
 R(1) = interp1(bat.cell_r1_table(:,1),bat.cell_r1_table(:,2),bat.SOC_current, 'makima');
@@ -19,9 +20,9 @@ cap_voltage = OCV;
 bat_cap = 0.001;
 DCDC_voltage = OCV;
 endj = 0;
-for k = 1:26
-    for i = 0:0.01:tme(end)
-        j = cast((i * 100)+ 1, 'int64');
+for k = 1:1
+    for i = 0:timestep:tme(end)
+        j = cast((i * (1 / timestep))+ 1, 'int64');
         tstart = i + (tme(end) * (k - 1));
         mpd = pd(j);
         mpd = mpd * 4;
@@ -32,14 +33,14 @@ for k = 1:26
 %                 disp("dingus")
                 mpd = 4 * ((mt(j) * ms(j) * 2 * pi()) / 60);
 %                 disp(mpd)
-                [t,x] = ode15s(@(t,x) HV_ODE(t,x,OCV,R,C,mpd, DCDCpd), [tstart, tstart + 0.01], [bat_cap, cap_voltage, DCDC_voltage]);
+                [t,x] = ode15s(@(t,x) HV_ODE(t,x,OCV,R,C,mpd, DCDCpd), [tstart, tstart + timestep], [bat_cap, cap_voltage, DCDC_voltage]);
                 bat.voltage_out = (OCV+((R(1)/R(3)).*x(:,2)) +((R(1)/R(4)).*x(:,3)) - x(:,1))/(1+(R(1)/R(3))+(R(1)/R(4)));
                 bat.current_out = ((bat.voltage_out - x(:,2))/R(3)) + ((bat.voltage_out - x(:,3))/R(4));
             end
                 
         else
             if(mpd < 0); mpd = 0; end
-            [t,x] = ode15s(@(t,x) HV_ODE(t,x,OCV,R,C,mpd, DCDCpd), [tstart, tstart + 0.01], [bat_cap, cap_voltage, DCDC_voltage]);
+            [t,x] = ode15s(@(t,x) HV_ODE(t,x,OCV,R,C,mpd, DCDCpd), [tstart, tstart + timestep], [bat_cap, cap_voltage, DCDC_voltage]);
             bat.voltage_out = (OCV+((R(1)/R(3)).*x(:,2)) +((R(1)/R(4)).*x(:,3)) - x(:,1))/(1+(R(1)/R(3))+(R(1)/R(4)));
             bat.current_out = ((bat.voltage_out - x(:,2))/R(3)) + ((bat.voltage_out - x(:,3))/R(4));
         end

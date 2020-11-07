@@ -37,15 +37,14 @@ classdef battery < handle  % must include "handle" in order to pass and return
             obj.cell_cap               = raw_vals(4);
 %             obj.voltage_out            = raw_vals(5);
             
-            table = readtable('VTC6_Data.csv');         % Load the cell data into Matlab
-            obj.cell_r1_table = table2array(table(4:12, 15:16));
-            obj.cell_r1_table = str2double(obj.cell_r1_table);
-            obj.cell_r2_table = [table2array(table(4:12, 15)), table2array(table(4:12, 17))];
-            obj.cell_r2_table = str2double(obj.cell_r2_table);
-            obj.cell_c1_table = [table2array(table(4:12, 15)), table2array(table(4:12, 18))];
-            obj.cell_c1_table = str2double(obj.cell_c1_table);
-            obj.OCV_table     = table2array(table(4:1788, 6:7));
-            obj.OCV_table     = str2double(obj.OCV_table);
+            table = readmatrix('VTC6_Data.csv');         % Load the cell data into Matlab
+            obj.cell_r1_table = table(4:12, 15:16);
+            obj.cell_r2_table = [table(4:12, 15), table(4:12, 17)];
+            %obj.cell_r2_table = str2double(obj.cell_r2_table);
+            obj.cell_c1_table = [table(4:12, 15), table(4:12, 18)];
+            %obj.cell_c1_table = str2double(obj.cell_c1_table);
+            obj.OCV_table     = table(4:1788, 6:7);
+            %obj.OCV_table     = str2double(obj.OCV_table);
             obj.cap_voltage   = 0.0001;
         end
         

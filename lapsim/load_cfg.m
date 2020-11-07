@@ -26,5 +26,5 @@ mo = motor(table2array(values(3:end, 16)));         % Convert motor values
 v = vd(table2array(values(3:end, 26)));             % Convert vd values
 %su = suspension(table2array(values(3:end, 28)));    % Convert suspension values
 su = 0;
-mo.DC_link_voltage = bat.OCV_table(1,2) * bat.cell_s;
-h.input_cap_voltage = mo.DC_link_voltage; 
+%mo.DC_link_voltage = bat.OCV_table(1,2) * bat.cell_s;
+%h.input_cap_voltage = mo.DC_link_voltage; 
