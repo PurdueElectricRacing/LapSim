@@ -3,6 +3,8 @@ clear SOC bat_volt bat_curr time trqe
 
 timestep = 0.1;
 
+avebatres = (25) * (bat.cell_s / (bat.cell_p * 1000));
+
 bat_ah = bat.total_cap / (bat.cell_s * mean(bat.OCV_table(:,2)));
 R(1) = interp1(bat.cell_r1_table(:,1),bat.cell_r1_table(:,2),bat.SOC_current, 'makima');
 R(2) = interp1(bat.cell_r2_table(:,1),bat.cell_r2_table(:,2),bat.SOC_current, 'makima');
@@ -40,6 +42,9 @@ for k = 1:1
                 
         else
             if(mpd < 0); mpd = 0; end
+            maxpower = (OCV * OCV) / (4 * avebatres);
+            mpower(j + endj) = maxpower;
+            newpd(j + endj) = min(maxpower, mpd + DCDCpd);
             [t,x] = ode15s(@(t,x) HV_ODE(t,x,OCV,R,C,mpd, DCDCpd), [tstart, tstart + timestep], [bat_cap, cap_voltage, DCDC_voltage]);
             bat.voltage_out = (OCV+((R(1)/R(3)).*x(:,2)) +((R(1)/R(4)).*x(:,3)) - x(:,1))/(1+(R(1)/R(3))+(R(1)/R(4)));
             bat.current_out = ((bat.voltage_out - x(:,2))/R(3)) + ((bat.voltage_out - x(:,3))/R(4));
